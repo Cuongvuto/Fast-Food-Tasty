@@ -10,6 +10,7 @@ import PaymentIcon from '@mui/icons-material/Payment';
 import ShoppingBagIcon from '@mui/icons-material/ShoppingBag';
 import DiscountIcon from '@mui/icons-material/Discount';
 import ClearIcon from '@mui/icons-material/Clear';
+import { getImageUrl } from '../utils/imageHelper';
 
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
