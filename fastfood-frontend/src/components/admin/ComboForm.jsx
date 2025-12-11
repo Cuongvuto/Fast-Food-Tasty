@@ -8,7 +8,7 @@ import {
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddCircleIcon from '@mui/icons-material/AddCircle';
-import apiClient from '../../api/axiosConfig';
+import apiClient from '../../API/axiosConfig';
 
 function ComboForm({ initialData = null, onSubmit, loading }) {
     // State thông tin cơ bản

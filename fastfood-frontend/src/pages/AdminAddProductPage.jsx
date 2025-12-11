@@ -4,7 +4,7 @@ import { Container, Typography, Box, Alert, IconButton } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { useNavigate } from 'react-router-dom';
 import ProductForm from '../components/admin/ProductForm';
-import apiClient from '../api/axiosConfig';
+import apiClient from '../API/axiosConfig';
 
 function AdminAddProductPage() {
     const navigate = useNavigate();

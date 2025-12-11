@@ -1,7 +1,7 @@
 // src/pages/CategoryMenuPage.jsx
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom'; // Hook để lấy tham số từ URL
-import apiClient from '../api/axiosConfig';
+import apiClient from'../API/axiosConfig';
 import { Container, Typography, Grid, CircularProgress, Alert, Box } from '@mui/material';
 import ProductCard from '../components/ProductCard';
 

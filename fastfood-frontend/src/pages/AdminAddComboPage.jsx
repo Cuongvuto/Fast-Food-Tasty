@@ -4,7 +4,7 @@ import { Container, Typography, Box, Alert, IconButton } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { useNavigate } from 'react-router-dom';
 import ComboForm from '../components/admin/ComboForm'; // Import form mới
-import apiClient from '../api/axiosConfig';
+import apiClient from '../API/axiosConfig';
 
 function AdminAddComboPage() {
     const navigate = useNavigate();

@@ -3,7 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { Container, Paper, Typography, Button, Box, CircularProgress, useTheme } from '@mui/material';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CancelIcon from '@mui/icons-material/Cancel'; // Icon lỗi đẹp hơn
-import apiClient from '../api/axiosConfig';
+import apiClient from'../API/axiosConfig';
 
 function PaymentResultPage() {
     const [searchParams] = useSearchParams();

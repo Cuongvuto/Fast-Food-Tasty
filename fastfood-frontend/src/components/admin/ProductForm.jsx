@@ -5,7 +5,7 @@ import {
     Select, MenuItem, FormControl, InputLabel, Paper, Grid,
     FormControlLabel, Checkbox // <-- ĐÃ THÊM IMPORT
 } from '@mui/material';
-import apiClient from '../../api/axiosConfig'; // Import apiClient
+import apiClient from '../../API/axiosConfig'; // Import apiClient
 
 function ProductForm({ initialData = null, onSubmit, loading }) {
     // State cho form

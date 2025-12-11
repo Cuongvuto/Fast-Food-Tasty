@@ -4,7 +4,7 @@ import { Container, Typography, Box, Alert, IconButton, CircularProgress } from 
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { useNavigate, useParams } from 'react-router-dom';
 import ComboForm from '../components/admin/ComboForm'; // Import form chung
-import apiClient from '../api/axiosConfig';
+import apiClient from'../API/axiosConfig';
 
 function AdminEditComboPage() {
     const { comboId } = useParams(); // Lấy ID combo từ URL

@@ -1,7 +1,7 @@
 // src/pages/ProductDetailPage.jsx
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link as RouterLink } from 'react-router-dom';
-import apiClient from '../api/axiosConfig';
+import apiClient from '../API/axiosConfig';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import {

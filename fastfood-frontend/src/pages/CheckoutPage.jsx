@@ -14,7 +14,7 @@ import ClearIcon from '@mui/icons-material/Clear';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import apiClient from '../api/axiosConfig';
+import apiClient from'../API/axiosConfig';
 
 function CheckoutPage() {
     const theme = useTheme();

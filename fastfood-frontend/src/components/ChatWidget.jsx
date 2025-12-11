@@ -4,7 +4,7 @@ import { Box, TextField, IconButton, Paper, Typography, Avatar, Fab, CircularPro
 import SmartToyIcon from '@mui/icons-material/SmartToy'; // Icon Robot
 import SendIcon from '@mui/icons-material/Send';
 import CloseIcon from '@mui/icons-material/Close';
-import apiClient from '../api/axiosConfig';
+import apiClient from'../API/axiosConfig';
 
 function ChatWidget() {
     const [isOpen, setIsOpen] = useState(false);

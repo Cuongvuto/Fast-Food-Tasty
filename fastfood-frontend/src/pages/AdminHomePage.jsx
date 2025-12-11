@@ -5,7 +5,7 @@ import {
     Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Button, Icon
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
-import apiClient from '../api/axiosConfig';
+import apiClient from'../API/axiosConfig';
 
 // Import Chart.js và components
 import { Line, Doughnut } from 'react-chartjs-2';

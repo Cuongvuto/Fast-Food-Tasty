@@ -8,7 +8,7 @@ import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { useNavigate } from 'react-router-dom';
-import apiClient from '../api/axiosConfig';
+import apiClient from '../API/axiosConfig';
 
 function AdminCombosPage() {
     const [combos, setCombos] = useState([]);

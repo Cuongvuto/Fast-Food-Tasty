@@ -1,7 +1,7 @@
 // src/pages/MenuPage.jsx
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import apiClient from '../api/axiosConfig';
+import apiClient from'../API/axiosConfig';
 import {
   Container, Typography, Grid, CircularProgress, Alert, Box,
   useTheme, Button, Pagination, Autocomplete, TextField

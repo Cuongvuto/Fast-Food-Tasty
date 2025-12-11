@@ -7,7 +7,7 @@ import {
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
-import apiClient from '../api/axiosConfig';
+import apiClient from'../API/axiosConfig';
 
 function AdminUsersPage() {
     const [users, setUsers] = useState([]);

@@ -21,7 +21,7 @@ import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import apiClient from '../api/axiosConfig';
+import apiClient from'../API/axiosConfig';
 
 function AdminDashboard() {
   const [products, setProducts] = useState([]);
@@ -83,6 +83,7 @@ function AdminDashboard() {
     try {
       const updatedProduct = { ...product, is_available: !product.is_available };
       delete updatedProduct.category_name;
+
       delete updatedProduct.category_slug;
 
       await apiClient.put(`/products/${product.id}`, updatedProduct);
