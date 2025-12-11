@@ -9,7 +9,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { useNavigate } from 'react-router-dom';
 import apiClient from '../API/axiosConfig';
-
+import { getImageUrl } from '../utils/imageHelper';
 function AdminCombosPage() {
     const [combos, setCombos] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -114,9 +114,10 @@ function AdminCombosPage() {
                                         <TableCell>
                                             <Box
                                                 component="img"
-                                                src={combo.image_url || '/placeholder.jpg'}
+                                                src={getImageUrl(combo.image_url)}
                                                 alt={combo.name}
                                                 sx={{ height: 40, width: 40, objectFit: 'cover', borderRadius: 1 }}
+                                                onError={(e) => { e.target.src = '/placeholder.jpg'; }}
                                             />
                                         </TableCell>
                                         <TableCell sx={{ fontWeight: 500 }}>{combo.name}</TableCell>

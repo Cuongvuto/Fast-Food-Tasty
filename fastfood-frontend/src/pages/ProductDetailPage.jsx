@@ -13,7 +13,8 @@ import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline';
 import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
 import HomeIcon from '@mui/icons-material/Home';
 import CategoryIcon from '@mui/icons-material/Category';
-import ProductCard from '../components/ProductCard'; // Keep this for related products
+import ProductCard from '../components/ProductCard'; 
+import { getImageUrl } from '../utils/imageHelper';
 
 function ProductDetailPage() {
     const { productId } = useParams();
@@ -148,7 +149,7 @@ function ProductDetailPage() {
                             top: 100 // Adjust top offset if using sticky header
                         }}>
                             <img
-                                src={product.image_url || '/placeholder.jpg'}
+                                image={getImageUrl(combo.image_url) || '/placeholder-combo.jpg'}
                                 alt={product.name}
                                 style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                             />

@@ -22,6 +22,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import apiClient from'../API/axiosConfig';
+import { getImageUrl } from '../utils/imageHelper';
 
 function AdminDashboard() {
   const [products, setProducts] = useState([]);
@@ -146,7 +147,7 @@ function AdminDashboard() {
                     <TableCell>
                       <Box
                         component="img"
-                        src={product.image_url || '/placeholder.jpg'}
+                        src={getImageUrl(product.image_url)}
                         alt={product.name}
                         sx={{
                           height: 40,

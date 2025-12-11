@@ -120,7 +120,7 @@ function CartPage() {
                                         {/* Ảnh sản phẩm */}
                                         <CardMedia
                                             component="img"
-                                            image={getImageUrl(product.image_url) || '/placeholder.jpg'} 
+                                            image={getImageUrl(item.image_url) || '/placeholder.jpg'} 
                                             alt={item.name}
                                             sx={{
                                                 width: 80,
