@@ -211,7 +211,7 @@ function CheckoutPage() {
                 </Grid>
 
                 {/* === CỘT PHẢI: ĐƠN HÀNG (Size 4 - Sticky) === */}
-                {/* SỬA Ở ĐÂY: Dùng prop 'size' */}
+               
                 <Grid size={{ xs: 12, md: 4 }}>
                     <Paper sx={{ 
                         p: 3, 
@@ -229,7 +229,7 @@ function CheckoutPage() {
                             {cartItems.map((item) => (
                                 <ListItem key={item.id} disableGutters divider sx={{ py: 1 }}>
                                     <ListItemAvatar>
-                                        <Avatar variant="rounded" src={item.image_url} alt={item.name} sx={{ width: 50, height: 50, mr: 1.5 }}/>
+                                        <Avatar variant="rounded" src={getImageUrl(item.image_url)} alt={item.name} sx={{ width: 50, height: 50, mr: 1.5 }}/>
                                     </ListItemAvatar>
                                     <ListItemText 
                                         primary={item.name} 
