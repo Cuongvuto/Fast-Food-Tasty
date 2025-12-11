@@ -1,23 +1,33 @@
 // fastfood-backend/routes/userRoutes.js
 const express = require('express');
+const router = express.Router();
+
+// Import Controller
 const {
+    updateUserProfile,
     getAllUsers,
     updateUserRole,
     deleteUser
 } = require('../controllers/userController');
-// const { protect, admin } = require('../middleware/authMiddleware'); // Cần middleware
 
-const router = express.Router();
+// Import Middleware
+// (Đã kiểm tra: thư mục tên 'middlewares' và biến tên 'isAdmin')
+const { protect, isAdmin } = require('../middlewares/authMiddleware'); 
 
-// Các route này cần được bảo vệ và chỉ admin mới được truy cập
+// --- 1. ROUTE CHO USER THƯỜNG ---
+// Cập nhật hồ sơ cá nhân
+router.put('/profile', protect, updateUserProfile);
 
-// Route GET /api/users (Lấy danh sách users)
-router.route('/').get(/*protect, admin,*/ getAllUsers);
 
-// Route PUT /api/users/:id/role (Cập nhật role)
-router.route('/:id/role').put(/*protect, admin,*/ updateUserRole);
+// --- 2. ROUTE CHO ADMIN ---
 
-// Route DELETE /api/users/:id (Xóa user)
-router.route('/:id').delete(/*protect, admin,*/ deleteUser);
+// Lấy danh sách users (Hỗ trợ phân trang ?page=1&limit=10)
+router.get('/', protect, isAdmin, getAllUsers);
+
+// Cập nhật quyền (role)
+router.put('/:id/role', protect, isAdmin, updateUserRole);
+
+// Xóa user
+router.delete('/:id', protect, isAdmin, deleteUser);
 
 module.exports = router;

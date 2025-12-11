@@ -4,7 +4,7 @@ const db = require('../config/db');
 // Hàm lấy tất cả danh mục
 const getAllCategories = async (req, res) => {
     try {
-        const sql = 'SELECT id, name, slug FROM categories ORDER BY name ASC'; // Lấy các cột cần thiết và sắp xếp
+        const sql = 'SELECT id, name, slug FROM categories ORDER BY name ASC'; 
         const [categories] = await db.query(sql);
 
         res.status(200).json({
@@ -17,7 +17,7 @@ const getAllCategories = async (req, res) => {
     }
 };
 
-// (Trong tương lai có thể thêm các hàm createCategory, updateCategory, deleteCategory ở đây)
+
 
 module.exports = {
     getAllCategories

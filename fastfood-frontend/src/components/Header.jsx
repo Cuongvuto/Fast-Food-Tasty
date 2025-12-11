@@ -1,82 +1,121 @@
 // src/components/Header.jsx
-import React from 'react';
-import { AppBar, Toolbar, Typography, Button, IconButton, Badge, Box, Stack } from '@mui/material';
+import React, { useState } from 'react';
+import { 
+    AppBar, Toolbar, Typography, Button, IconButton, Badge, 
+    Box, Stack, Menu, MenuItem, Avatar, Tooltip, Divider 
+} from '@mui/material';
 import ShoppingCartOutlinedIcon from '@mui/icons-material/ShoppingCartOutlined';
-// 1. Import thêm useLocation
 import { Link as RouterLink, useNavigate, useLocation } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 
 function Header() {
     const { cartItems } = useCart();
-    const { isLoggedIn, logout } = useAuth();
+    // 1. Lấy thêm biến 'user' từ Context để hiển thị Avatar và check Admin
+    const { isLoggedIn, logout, user } = useAuth(); 
+    
     const totalItems = cartItems.reduce((sum, item) => sum + item.quantity, 0);
     const navigate = useNavigate();
-    const location = useLocation(); // 2. Lấy thông tin vị trí (URL) hiện tại
+    const location = useLocation();
 
-    // 3. Tạo hàm xử lý khi bấm vào icon giỏ hàng
-    const handleCartClick = () => {
-        if (isLoggedIn) {
-            navigate('/cart');
-        } else {
-            navigate('/login');
-        }
+    // --- STATE CHO MENU USER ---
+    const [anchorElUser, setAnchorElUser] = useState(null);
+
+    const handleOpenUserMenu = (event) => {
+        setAnchorElUser(event.currentTarget);
     };
 
-    // 4. Hàm helper để xác định style (in đậm/mờ)
+    const handleCloseUserMenu = () => {
+        setAnchorElUser(null);
+    };
+
+    const handleLogout = () => {
+        handleCloseUserMenu();
+        logout();
+        navigate('/');
+    };
+
+    const handleCartClick = () => {
+        // Cho phép xem giỏ hàng kể cả khi chưa login (tùy logic của bạn, ở đây giữ nguyên logic cũ)
+        navigate('/cart'); 
+    };
+
+    // Hàm style cho Link (Giữ nguyên của bạn)
     const getLinkStyle = (path) => {
         const currentPath = location.pathname;
-
-        // Kiểu style khi link được active (in đậm)
-        const activeStyle = {
-            color: 'text.primary',
-            fontWeight: 600
-        };
-        // Kiểu style khi link không active
-        const inactiveStyle = {
-            color: 'text.secondary'
-        };
-
-        // Trường hợp đặc biệt cho Home: phải khớp chính xác
-        if (path === '/') {
-            return currentPath === '/' ? activeStyle : inactiveStyle;
-        }
-        
-        // Các link khác: chỉ cần URL "bắt đầu bằng" (để /menu/burger vẫn highlight /menu)
+        const activeStyle = { color: 'text.primary', fontWeight: 600 };
+        const inactiveStyle = { color: 'text.secondary' };
+        if (path === '/') return currentPath === '/' ? activeStyle : inactiveStyle;
         return currentPath.startsWith(path) ? activeStyle : inactiveStyle;
     };
 
     return (
         <AppBar position="sticky" sx={{ bgcolor: 'white', px: { xs: 2, md: 10 } }}>
             <Toolbar sx={{ py: 2 }}>
+                {/* LOGO */}
                 <Typography variant="h5" component={RouterLink} to="/" sx={{ flexGrow: 1, fontWeight: 'bold', textDecoration: 'none', color: 'text.primary' }}>
                     TASTY
                 </Typography>
+
+                {/* MENU LINKS */}
                 <Stack direction="row" spacing={3} sx={{ display: { xs: 'none', md: 'flex' }, alignItems: 'center' }}>
+                    <Button component={RouterLink} to="/" sx={getLinkStyle('/')}>Home</Button>
+                    <Button component={RouterLink} to="/menu" sx={getLinkStyle('/menu')}>Menu</Button>
+                    <Button component={RouterLink} to="/about" sx={getLinkStyle('/about')}>About Us</Button>
                     
-                    {/* 5. Áp dụng hàm getLinkStyle vào các nút */}
-                    <Button component={RouterLink} to="/" sx={getLinkStyle('/')}>
-                        Home
-                    </Button>
-                    <Button component={RouterLink} to="/menu" sx={getLinkStyle('/menu')}>
-                        Menu
-                    </Button>
-                    <Button component={RouterLink} to="/about" sx={getLinkStyle('/about')}>
-                        About Us
-                    </Button>
-                    
+                    {/* CART ICON */}
                     <IconButton onClick={handleCartClick} sx={{ color: 'text.primary' }}>
                         <Badge badgeContent={totalItems} color="primary">
                             <ShoppingCartOutlinedIcon />
                         </Badge>
                     </IconButton>
                 </Stack>
+
+                {/* AUTH BUTTONS / USER MENU */}
                 <Box sx={{ ml: 3 }}>
                     {isLoggedIn ? (
-                        <Button variant="contained" onClick={logout}>
-                            Logout
-                        </Button>
+                        <Box sx={{ flexGrow: 0 }}>
+                            <Tooltip title="Tài khoản">
+                                <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
+                                    {/* Hiển thị Avatar: Nếu có ảnh thì hiện, không thì lấy chữ cái đầu */}
+                                    <Avatar alt={user?.full_name} src="/static/images/avatar/2.jpg" sx={{ bgcolor: 'primary.main' }}>
+                                        {user?.full_name ? user.full_name.charAt(0).toUpperCase() : 'U'}
+                                    </Avatar>
+                                </IconButton>
+                            </Tooltip>
+                            
+                            <Menu
+                                sx={{ mt: '45px' }}
+                                id="menu-appbar"
+                                anchorEl={anchorElUser}
+                                anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+                                keepMounted
+                                transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+                                open={Boolean(anchorElUser)}
+                                onClose={handleCloseUserMenu}
+                            >
+                                {/* Link đến trang Profile */}
+                                <MenuItem onClick={() => { handleCloseUserMenu(); navigate('/profile'); }}>
+                                    <Typography textAlign="center">Tài khoản của tôi</Typography>
+                                </MenuItem>
+
+                                {/* Link đến trang Admin (Chỉ hiện nếu là Admin) */}
+                                {user?.role === 'admin' && (
+                                    <MenuItem onClick={() => { handleCloseUserMenu(); navigate('/admin'); }}>
+                                        <Typography textAlign="center" color="primary" fontWeight="bold">Trang quản trị</Typography>
+                                    </MenuItem>
+                                )}
+                                
+                                <Divider />
+
+                                {/* Nút Đăng xuất */}
+                                <MenuItem onClick={handleLogout}>
+                                    <Typography textAlign="center" color="error">Đăng xuất</Typography>
+                                </MenuItem>
+                            </Menu>
+                        </Box>
                     ) : (
+                        // Nếu chưa đăng nhập
                         <Stack direction="row" spacing={1.5}>
                             <Button variant="outlined" component={RouterLink} to="/login">
                                 Login

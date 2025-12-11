@@ -6,6 +6,7 @@ import { Box } from '@mui/material';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import AdminRoute from './components/AdminRoute';
+import ChatWidget from './components/ChatWidget'; 
 
 // --- Public Pages ---
 import HomePage from './pages/HomePage';
@@ -17,6 +18,9 @@ import CategoryMenuPage from './pages/CategoryMenuPage';
 import AboutPage from './pages/AboutPage';
 import ProductDetailPage from './pages/ProductDetailPage';
 import CheckoutPage from './pages/CheckoutPage';
+import OrderSuccessPage from './pages/OrderSuccessPage';
+import PaymentResultPage from './pages/PaymentResultPage';
+import ProfilePage from './pages/ProfilePage';
 
 // --- Admin Pages ---
 import AdminHomePage from './pages/AdminHomePage';
@@ -55,6 +59,9 @@ function App() {
           <Route path="/about" element={<AboutPage />} />
           <Route path="/product/:productId" element={<ProductDetailPage />} />
           <Route path="/checkout" element={<CheckoutPage />} />
+          <Route path="/order-success" element={<OrderSuccessPage />} />
+          <Route path="/payment-result" element={<PaymentResultPage />} />
+          <Route path="/profile" element={<ProfilePage />} />
 
           {/* === Admin Routes === */}
           <Route element={<AdminRoute />}>
@@ -71,7 +78,11 @@ function App() {
         </Routes>
       </Box>
 
-      {/* Footer công khai (ẩn ở trang admin) */}
+      {/* ---  CHATBOT  --- */}
+      
+      {!isAdminPath && <ChatWidget />}
+
+      
       {!isAdminPath && <Footer />}
     </Box>
   );

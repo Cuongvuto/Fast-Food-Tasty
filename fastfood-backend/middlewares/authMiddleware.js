@@ -14,7 +14,7 @@ const protect = async (req, res, next) => {
             const decoded = jwt.verify(token, process.env.JWT_SECRET);
             
             // Lấy thông tin user từ token và gắn vào request
-            const [users] = await db.query('SELECT id, full_name, email, role FROM users WHERE id = ?', [decoded.id]);
+            const [users] = await db.query('SELECT id, full_name, email,phone_number, address, role FROM users WHERE id = ?', [decoded.id]);
 
             // Kiểm tra xem user có còn tồn tại không
             if (!users[0]) {

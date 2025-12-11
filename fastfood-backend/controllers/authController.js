@@ -6,8 +6,7 @@ const jwt = require('jsonwebtoken');
 // --- HÀM ĐĂNG KÝ (ĐÃ SỬA) ---
 const registerUser = async (req, res) => {
     // 1. SỬA LẠI ĐỂ NHẬN SĐT
-    // Giả sử frontend gửi SĐT với tên là 'phoneNumber'
-    // Nếu tên khác (ví dụ: 'phone_number'), bạn phải sửa lại 'phoneNumber' ở dưới
+    
     const { fullName, email, password, phoneNumber } = req.body; 
 
     // 2. SỬA LẠI KIỂM TRA
@@ -26,11 +25,11 @@ const registerUser = async (req, res) => {
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
 
-        // 3. SỬA LẠI CÂU LỆNH SQL (Thêm 'phone_number')
+        // 3. SỬA LẠI CÂU LỆNH SQL 
         const sql = 'INSERT INTO users (full_name, email, password_hash, phone_number, role, created_at, updated_at) VALUES (?, ?, ?, ?, ?, NOW(), NOW())';
         const defaultRole = 'user';
         
-        // 4. SỬA LẠI MẢNG THAM SỐ (Truyền 'phoneNumber' vào)
+        // 4. SỬA LẠI MẢNG THAM SỐ 
         const [result] = await db.query(sql, [fullName, email, hashedPassword, phoneNumber, defaultRole]);
         const newUserId = result.insertId;
 
@@ -52,7 +51,7 @@ const registerUser = async (req, res) => {
     }
 };
 
-// --- HÀM ĐĂNG NHẬP (Giữ nguyên) ---
+// --- HÀM ĐĂNG NHẬP  ---
 const loginUser = async (req, res) => {
     const { email, password } = req.body;
 
@@ -86,7 +85,9 @@ const loginUser = async (req, res) => {
                 id: user.id,
                 full_name: user.full_name,
                 email: user.email,
-                role: user.role
+                role: user.role,
+                phone_number: user.phone_number,
+                address: user.address
             }
         });
 
@@ -96,7 +97,7 @@ const loginUser = async (req, res) => {
     }
 };
 
-// --- HÀM LẤY THÔNG TIN USER HIỆN TẠI (Giữ nguyên) ---
+// --- HÀM LẤY THÔNG TIN USER HIỆN TẠI  ---
 const getUserProfile = async (req, res) => {
     if (req.user) {
         res.status(200).json({

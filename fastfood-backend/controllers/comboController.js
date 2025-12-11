@@ -51,7 +51,7 @@ const calculateComboPrices = async (items, discountAmount, connection) => {
  * @access  Admin
  */
 const createCombo = async (req, res) => {
-    // 'price' từ form giờ là 'discount_amount_from_form'
+    
     const { name, description, discount_amount_from_form, image_url, is_available, items } = req.body;
 
     if (!name || !items || items.length === 0) {
@@ -173,7 +173,7 @@ const updateCombo = async (req, res) => {
     }
 };
 
-// --- CÁC HÀM KHÁC GIỮ NGUYÊN ---
+
 
 /**
  * @desc    Lấy tất cả combo (cho khách hàng)
@@ -242,7 +242,7 @@ const getComboById = async (req, res) => {
             message: 'Lấy chi tiết combo thành công',
             data: {
                 ...comboInfo,
-                items: items // items giờ sẽ có giá gốc của từng sản phẩm
+                items: items 
             }
         });
     } catch (error) {

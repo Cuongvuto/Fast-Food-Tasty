@@ -1,23 +1,42 @@
 // src/context/CartContext.jsx
-import React, { createContext, useState, useContext } from 'react';
+import React, { createContext, useState, useContext, useEffect } from 'react'; // Nhớ import useEffect
 
 const CartContext = createContext();
 
 export const useCart = () => useContext(CartContext);
 
-// Hàm helper để đọc giỏ hàng từ localStorage
+// Hàm helper đọc dữ liệu
 const getInitialCart = () => {
     try {
         const localData = localStorage.getItem('cart');
         return localData ? JSON.parse(localData) : [];
     } catch (error) {
-        console.error("Không thể đọc giỏ hàng từ localStorage", error);
         return [];
     }
 };
 
 export const CartProvider = ({ children }) => {
     const [cartItems, setCartItems] = useState(getInitialCart);
+
+    // --- THÊM ĐOẠN NÀY: TỰ ĐỘNG XÓA GIỎ KHI CÓ CỜ HIỆU ---
+    useEffect(() => {
+        // Kiểm tra xem vừa thanh toán xong không
+        const isPaid = localStorage.getItem('PAYMENT_SUCCESS');
+        
+        if (isPaid === 'true') {
+            console.log("--> PHÁT HIỆN THANH TOÁN THÀNH CÔNG: XÓA GIỎ HÀNG <--");
+            
+            // 1. Xóa State
+            setCartItems([]);
+            
+            // 2. Xóa LocalStorage giỏ hàng
+            localStorage.removeItem('cart');
+            
+            // 3. Xóa luôn cờ hiệu (để lần sau vào web không bị xóa nhầm)
+            localStorage.removeItem('PAYMENT_SUCCESS');
+        }
+    }, []); // Chạy 1 lần duy nhất khi App/Context khởi động
+    // -----------------------------------------------------
 
     const addToCart = (product, quantity) => {
         setCartItems(prevItems => {
@@ -30,7 +49,6 @@ export const CartProvider = ({ children }) => {
             } else {
                 newItems = [...prevItems, { ...product, quantity }];
             }
-            // Ghi đè vào localStorage
             localStorage.setItem('cart', JSON.stringify(newItems));
             return newItems;
         });
@@ -39,14 +57,12 @@ export const CartProvider = ({ children }) => {
     const removeFromCart = (productId) => {
         setCartItems(prevItems => {
             const newItems = prevItems.filter((item) => item.id !== productId);
-            // Ghi đè vào localStorage
             localStorage.setItem('cart', JSON.stringify(newItems));
             return newItems;
         });
     };
 
     const clearCart = () => {
-        // Xóa cả state và localStorage
         localStorage.removeItem('cart');
         setCartItems([]);
     };
