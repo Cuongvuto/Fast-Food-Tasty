@@ -8,7 +8,7 @@ const {
 } = require('../controllers/productController');
 
 // 👇 1. IMPORT CẤU HÌNH CLOUDINARY
-const uploadCloud = require('../config/cloudinary');
+const uploadCloud = require('../middlewares/uploadCloud');
 
 const router = express.Router();
 
