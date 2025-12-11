@@ -1,6 +1,6 @@
 // src/pages/homeSections/SuggestionsSection.jsx
 import React, { useState, useEffect } from 'react';
-import apiClient from '../../api/axiosConfig';
+import apiClient from '../../API/axiosConfig';
 import { Container, Typography, Box, CircularProgress, Grid } from '@mui/material';
 import ProductCard from '../../components/ProductCard';
 
