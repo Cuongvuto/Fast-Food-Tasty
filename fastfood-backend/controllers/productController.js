@@ -16,39 +16,29 @@ const getAllProducts = async (req, res) => {
     const params = [];
     const conditions = [];
 
-    // Chỉ lấy sản phẩm khả dụng nếu không có include_unavailable
     if (include_unavailable !== 'true') {
       conditions.push('p.is_available = TRUE');
     }
-
-    // Lọc theo danh mục
     if (category) {
       conditions.push('c.slug = ?');
       params.push(category);
     }
-
-    // Lọc theo từ khóa
     if (search) {
       conditions.push('p.name LIKE ? OR p.description LIKE ?');
       params.push(`%${search}%`, `%${search}%`);
     }
-
-    // Lọc sản phẩm hot
     if (is_hot === 'true') {
       conditions.push('p.is_hot = TRUE');
     }
 
-    // Nối điều kiện nếu có
     if (conditions.length > 0) {
       baseSql += ' WHERE ' + conditions.join(' AND ');
     }
 
-    // === 1️⃣ Đếm tổng số sản phẩm ===
     const [countResult] = await db.query(`SELECT COUNT(*) as total ${baseSql}`, params);
     const totalItems = countResult[0].total;
     const totalPages = Math.ceil(totalItems / limit);
 
-    // === 2️⃣ Lấy danh sách sản phẩm có giới hạn (LIMIT / OFFSET) ===
     const dataSql = `
       SELECT
         p.id, p.name, p.description, p.price, p.image_url,
@@ -60,7 +50,6 @@ const getAllProducts = async (req, res) => {
     `;
     const [products] = await db.query(dataSql, [...params, limit, offset]);
 
-    // === 3️⃣ Trả kết quả về ===
     res.status(200).json({
       message: 'Lấy danh sách sản phẩm thành công',
       data: products,
@@ -101,11 +90,22 @@ const getProductById = async (req, res) => {
   }
 };
 
-// === TẠO SẢN PHẨM MỚI ===
+// === TẠO SẢN PHẨM MỚI (ĐÃ NÂNG CẤP UPLOAD) ===
 const createProduct = async (req, res) => {
-  const { name, description, price, category_id, image_url, is_available = true, is_hot = false } = req.body;
+  // Lấy các trường thông tin từ form
+  const { name, description, price, category_id, is_available = true, is_hot = false } = req.body;
 
-  if (!name || !price || !category_id || !image_url) {
+  // --- LOGIC XỬ LÝ ẢNH MỚI ---
+  let finalImageUrl = req.body.image_url; // Mặc định lấy link nhập tay (nếu có)
+
+  // Nếu có file được upload qua Cloudinary, ghi đè link ảnh bằng link Cloudinary
+  if (req.file && req.file.path) {
+    finalImageUrl = req.file.path;
+  }
+  // -----------------------------
+
+  // Kiểm tra dữ liệu (dùng finalImageUrl để check)
+  if (!name || !price || !category_id || !finalImageUrl) {
     return res.status(400).json({ message: 'Thiếu thông tin bắt buộc: tên, giá, danh mục, hình ảnh.' });
   }
 
@@ -115,7 +115,8 @@ const createProduct = async (req, res) => {
       (name, description, price, category_id, image_url, is_available, is_hot)
       VALUES (?, ?, ?, ?, ?, ?, ?)
     `;
-    const params = [name, description, price, category_id, image_url, is_available ? 1 : 0, is_hot ? 1 : 0];
+    // Dùng finalImageUrl để lưu vào DB
+    const params = [name, description, price, category_id, finalImageUrl, is_available ? 1 : 0, is_hot ? 1 : 0];
     const [result] = await db.query(sql, params);
 
     const [newProduct] = await db.query(`
@@ -135,12 +136,20 @@ const createProduct = async (req, res) => {
   }
 };
 
-// === CẬP NHẬT SẢN PHẨM ===
+// === CẬP NHẬT SẢN PHẨM (ĐÃ NÂNG CẤP UPLOAD) ===
 const updateProduct = async (req, res) => {
   const productId = req.params.id;
-  const { name, description, price, category_id, image_url, is_available, is_hot } = req.body;
+  const { name, description, price, category_id, is_available, is_hot } = req.body;
 
-  if (!name || price === undefined || category_id === undefined || !image_url) {
+  // --- LOGIC XỬ LÝ ẢNH MỚI ---
+  let finalImageUrl = req.body.image_url;
+
+  if (req.file && req.file.path) {
+    finalImageUrl = req.file.path;
+  }
+  // -----------------------------
+
+  if (!name || price === undefined || category_id === undefined || !finalImageUrl) {
     return res.status(400).json({ message: 'Thiếu thông tin bắt buộc: tên, giá, danh mục, hình ảnh.' });
   }
 
@@ -156,7 +165,7 @@ const updateProduct = async (req, res) => {
         image_url = ?, is_available = ?, is_hot = ?
       WHERE id = ?
     `;
-    const params = [name, description, price, category_id, image_url, is_available ? 1 : 0, is_hot ? 1 : 0, productId];
+    const params = [name, description, price, category_id, finalImageUrl, is_available ? 1 : 0, is_hot ? 1 : 0, productId];
     await db.query(sql, params);
 
     const [updatedProduct] = await db.query(`
