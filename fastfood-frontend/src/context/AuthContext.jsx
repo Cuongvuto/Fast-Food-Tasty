@@ -1,6 +1,6 @@
 // src/context/AuthContext.jsx
 import React, { createContext, useState, useContext, useEffect } from 'react';
-import apiClient from '../api/axiosConfig';
+import apiClient from '../API/axiosConfig';
 import { useCart } from './CartContext'; // Đảm bảo import useCart nếu cần dùng
 
 const AuthContext = createContext();
