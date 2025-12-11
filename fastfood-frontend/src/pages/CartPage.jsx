@@ -10,6 +10,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
 import { useNavigate } from 'react-router-dom';
+import { getImageUrl } from '../utils/imageHelper';
 
 function CartPage() {
     const theme = useTheme();
@@ -119,7 +120,7 @@ function CartPage() {
                                         {/* Ảnh sản phẩm */}
                                         <CardMedia
                                             component="img"
-                                            image={item.image_url || '/placeholder.jpg'} // Placeholder nếu không có
+                                            image={getImageUrl(product.image_url) || '/placeholder.jpg'} 
                                             alt={item.name}
                                             sx={{
                                                 width: 80,

@@ -4,8 +4,9 @@ import {
     Card, CardMedia, CardContent, CardActions, Typography, Button, Box
 } from '@mui/material';
 import AddShoppingCartIcon from '@mui/icons-material/AddShoppingCart';
-import { useCart } from '../context/CartContext'; // Giả sử bạn dùng CartContext
+import { useCart } from '../context/CartContext'; 
 import { useNavigate } from 'react-router-dom';
+import { getImageUrl } from '../utils/imageHelper';
 
 function ComboCard({ combo }) {
     const { addToCart } = useCart();
@@ -51,7 +52,7 @@ function ComboCard({ combo }) {
             <CardMedia
                 component="img"
                 height="200"
-                image={combo.image_url || '/placeholder.jpg'}
+                image={getImageUrl(combo.image_url) || '/placeholder.jpg'}
                 alt={combo.name}
                 onClick={handleViewDetails}
                 sx={{ cursor: 'pointer' }}

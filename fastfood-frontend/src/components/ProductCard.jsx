@@ -8,6 +8,7 @@ import AddShoppingCartIcon from '@mui/icons-material/AddShoppingCart';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import { getImageUrl } from '../utils/imageHelper';
 
 function ProductCard({ product }) {
     const [imageLoaded, setImageLoaded] = useState(false); // Trạng thái tải ảnh
@@ -81,7 +82,7 @@ function ProductCard({ product }) {
                     <CardMedia
                         component="img"
                         height="200"
-                        image={product.image_url || '/placeholder.jpg'}
+                        image={getImageUrl(product.image_url) || '/placeholder.jpg'}
                         alt={product.name}
                         onClick={handleViewDetails}
                         onLoad={() => setImageLoaded(true)}
@@ -90,7 +91,7 @@ function ProductCard({ product }) {
                             objectFit: 'cover',
                             display: imageLoaded ? 'block' : 'none',
                             transition: 'transform 0.5s ease',
-                            '&:hover': { transform: 'scale(1.05)' } // Zoom nhẹ ảnh khi di chuột vào ảnh
+                            '&:hover': { transform: 'scale(1.05)' }
                         }}
                     />
                 </Box>
