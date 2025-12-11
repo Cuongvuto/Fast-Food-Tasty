@@ -16,11 +16,39 @@ const dashboardRoutes = require('./routes/dashboardRoutes');
 const chatRoutes = require('./routes/chatRoutes');
 const paymentRoutes = require('./routes/paymentRoutes');
 const voucherRoutes = require('./routes/voucherRoutes');
+
 const app = express();
-// === MIDDLEWARES ===
-app.use(cors());
+
+// === CẤU HÌNH CORS (QUAN TRỌNG NHẤT) ===
+const allowedOrigins = [
+    'http://localhost:5173',             // Frontend chạy ở máy (Vite)
+    'http://localhost:5001',             // Backend chạy ở máy (đề phòng)
+    'https://fast-food-tasty.vercel.app' // <--- Frontend trên Vercel (KHÔNG CÓ DẤU / Ở CUỐI)
+];
+
+app.use(cors({
+    origin: function (origin, callback) {
+        // Cho phép request không có origin (như Postman, App Mobile) hoặc nằm trong danh sách cho phép
+        if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+            callback(null, true);
+        } else {
+            callback(new Error('CORS Error: Origin này không được phép truy cập!'));
+        }
+    },
+    credentials: true, // Cho phép nhận cookie/token
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+}));
+
+// === MIDDLEWARES KHÁC ===
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public'))); 
+
+// Middleware Log (Nên để lên trên cùng để xem log request)
+app.use((req, res, next) => {
+    console.log(`REQUEST ĐẾN: ${req.method} ${req.originalUrl}`);
+    next();
+});
 
 // === ROUTES ===
 app.get('/', (req, res) => {
@@ -44,11 +72,6 @@ app.use((req, res, next) => {
     const error = new Error(`Không tìm thấy - ${req.originalUrl}`);
     res.status(404);
     next(error);
-});
-
-app.use((req, res, next) => {
-    console.log(`REQUEST ĐẾN: ${req.method} ${req.originalUrl}`);
-    next();
 });
 
 // Middleware xử lý lỗi chung
