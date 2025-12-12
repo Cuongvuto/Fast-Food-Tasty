@@ -149,7 +149,7 @@ function ProductDetailPage() {
                             top: 100 // Adjust top offset if using sticky header
                         }}>
                             <img
-                                image={getImageUrl(combo.image_url) || '/placeholder-combo.jpg'}
+                                image={getImageUrl(product.image_url) || '/placeholder-product.jpg'}
                                 alt={product.name}
                                 style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                             />
