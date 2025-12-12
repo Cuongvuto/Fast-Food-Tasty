@@ -161,7 +161,10 @@ function ProfilePage() {
                                 />
                                 <TextField fullWidth label="Số điện thoại" margin="normal" 
                                     value={formData.phone} 
-                                    onChange={(e) => setFormData({...formData, phone: e.target.value})} 
+                                    onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                                    name="phone"
+                                    type="tel"
+                                    autoComplete="tel" 
                                 />
                                 <TextField fullWidth label="Địa chỉ mặc định" margin="normal" multiline rows={2} 
                                     value={formData.address} 

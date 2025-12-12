@@ -182,7 +182,7 @@ function CheckoutPage() {
                         </Typography>
                         <Grid container spacing={2}>
                             <Grid size={{ xs: 12 }}>
-                                <TextField label="Họ và Tên" fullWidth required value={fullName} onChange={(e) => setFullName(e.target.value)} disabled={placingOrder} size="small" />
+                                <TextField label="Họ và Tên" fullWidth required value={fullName} onChange={(e) => setFullName(e.target.value)} disabled={placingOrder} size="small" name="phone" type="tel" autoComplete="tel" />
                             </Grid>
                             <Grid size={{ xs: 12, md: 6 }}>
                                 <TextField label="Số điện thoại" fullWidth required value={phone} onChange={(e) => setPhone(e.target.value)} disabled={placingOrder} size="small" />
