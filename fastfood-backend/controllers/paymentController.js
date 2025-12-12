@@ -34,7 +34,16 @@ exports.createPaymentUrl = (req, res) => {
         let tmnCode = process.env.VNP_TMN_CODE;
         let secretKey = process.env.VNP_HASH_SECRET;
         let vnpUrl = process.env.VNP_URL;
-        let returnUrl = process.env.VNP_RETURN_URL;
+        // let returnUrl = process.env.VNP_RETURN_URL;
+
+        let returnUrl;
+
+            if (process.env.NODE_ENV === 'production') {
+    
+            returnUrl = 'https://fast-food-tasty.vercel.app/payment-result'; 
+            } else {
+            returnUrl = 'http://localhost:5173/payment-result';
+}
 
         // 3. Tạo tham số thanh toán
         let vnp_Params = {};
