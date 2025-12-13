@@ -1,0 +1,25 @@
+# 1. Hệ thống & Editor (File rác của máy tính và VS Code)
+.DS_Store
+.vscode/
+.idea/
+
+# 2. Thư viện (Chỉ chặn thư mục nặng, GIỮ LẠI package-lock.json)
+node_modules/
+
+# 3. Bảo mật (QUAN TRỌNG - Chặn file chứa Key)
+.env
+.env.local
+.env.*.local
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# 4. Build (File đã biên dịch ra code tĩnh)
+dist/
+build/
+frontend/dist/
+frontend/build/
+
+# 5. File upload (Ảnh/Video người dùng up lên server)
+backend/uploads/
