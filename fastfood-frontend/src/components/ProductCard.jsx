@@ -1,25 +1,22 @@
 // src/components/ProductCard.jsx
 import React, { useState } from 'react';
 import {
-    Card, CardMedia, CardContent, CardActions, Typography, Button, Box,
-    Skeleton, Badge
+    Card, CardMedia, CardContent, Typography, Button, Box, Skeleton, Badge, CircularProgress
 } from '@mui/material';
-import AddShoppingCartIcon from '@mui/icons-material/AddShoppingCart';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { getImageUrl } from '../utils/imageHelper';
 
 function ProductCard({ product }) {
-    const [imageLoaded, setImageLoaded] = useState(false); // Trạng thái tải ảnh
-    const [adding, setAdding] = useState(false); // Trạng thái nút bấm loading
+    const [imageLoaded, setImageLoaded] = useState(false);
+    const [adding, setAdding] = useState(false);
     const { addToCart } = useCart();
     const { isLoggedIn } = useAuth();
     const navigate = useNavigate();
 
-    // --- Xử lý thêm vào giỏ ---
     const handleAddToCart = async (e) => {
-        e.stopPropagation(); // Ngăn click xuyên qua card để vào trang chi tiết
+        e.stopPropagation(); 
         
         if (!isLoggedIn) {
             navigate('/login');
@@ -28,12 +25,10 @@ function ProductCard({ product }) {
 
         setAdding(true);
         try {
-            // Mặc định thêm 1 sản phẩm
             await addToCart(product, 1);
         } catch (error) {
             console.error("Lỗi thêm giỏ hàng:", error);
         } finally {
-            // Timeout nhẹ để tạo hiệu ứng phản hồi cho người dùng
             setTimeout(() => setAdding(false), 300);
         }
     };
@@ -49,105 +44,161 @@ function ProductCard({ product }) {
             badgeContent={product.is_hot ? "HOT" : null}
             color="error"
             sx={{ 
-                width: '100%', 
+                width: '100%',
+                height: '100%', 
+                display: 'flex',
                 '& .MuiBadge-badge': { 
-                    right: 10, 
-                    top: 10, 
+                    right: 15,
+                    top: 15, 
                     fontWeight: 'bold',
-                    zIndex: 10 // Đảm bảo badge nằm trên ảnh
+                    zIndex: 10
                 } 
             }}
         >
             <Card 
+                elevation={0} // Bỏ bóng đổ mặc định, dùng viền mỏng giống Lotteria
                 sx={{ 
                     height: '100%', 
                     width: '100%',
                     display: 'flex', 
+                    maxWidth: 250, 
+                    margin: '0 auto',
                     flexDirection: 'column',
-                    // Hiệu ứng Hover giống hệt ComboCard
-                    transition: 'transform 0.3s ease, box-shadow 0.3s ease',
-                    '&:hover': {
-                        transform: 'translateY(-5px)',
-                        boxShadow: 6, 
-                    },
                     borderRadius: 2, // Bo góc nhẹ
-                    position: 'relative'
+                    position: 'relative',
+                    bgcolor: '#ffffff',
+                    border: '1px solid #f0f0f0', // Viền mỏng phân cách các card
+                    transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+                    '&:hover': {
+                        transform: 'translateY(-3px)',
+                        boxShadow: '0 4px 12px rgba(0,0,0,0.08)', 
+                    }
                 }}
             >
-                {/* === PHẦN ẢNH (Có Skeleton Loading) === */}
-                <Box sx={{ position: 'relative', height: 200, overflow: 'hidden', bgcolor: '#f0f0f0' }}>
+                {/* === PHẦN ẢNH (TỶ LỆ CHÍNH XÁC 213x149) === */}
+                <Box 
+                    sx={{ 
+                        position: 'relative', 
+                        width: '100%', 
+                        aspectRatio: '213 / 149', // Ép đúng tỷ lệ ảnh từ DevTools của bạn
+                        flexShrink: 0, 
+                        overflow: 'hidden', 
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        p: '13px' // Padding xung quanh ảnh
+                    }}
+                >
                     {!imageLoaded && (
-                        <Skeleton variant="rectangular" width="100%" height="100%" animation="wave" />
+                        <Skeleton 
+                            variant="circular" 
+                            animation="wave" 
+                            sx={{ position: 'absolute', width: '80%', height: '80%' }}
+                        />
                     )}
                     <CardMedia
                         component="img"
-                        height="200"
                         image={getImageUrl(product.image_url) || '/placeholder.jpg'}
                         alt={product.name}
                         onClick={handleViewDetails}
                         onLoad={() => setImageLoaded(true)}
                         sx={{ 
+                            width: '100%',
+                            height: '100%',
                             cursor: 'pointer',
-                            objectFit: 'cover',
-                            display: imageLoaded ? 'block' : 'none',
-                            transition: 'transform 0.5s ease',
-                            '&:hover': { transform: 'scale(1.05)' }
+                            objectFit: 'contain', // Giữ nguyên món ăn không bị cắt mép
+                            opacity: imageLoaded ? 1 : 0,
+                            transition: 'transform 0.4s ease, opacity 0.3s ease',
+                            '&:hover': { transform: 'scale(1.05)' } 
                         }}
                     />
                 </Box>
 
-                {/* === PHẦN NỘI DUNG === */}
-                <CardContent sx={{ flexGrow: 1, pb: 1 }}>
-                    {/* Tên sản phẩm - In đậm giống ComboCard */}
+                {/* === PHẦN NỘI DUNG (CĂN TRÁI, PADDING 13px) === */}
+                <CardContent sx={{ 
+                    flexGrow: 1, 
+                    display: 'flex', 
+                    flexDirection: 'column',
+                    p: '13px', // Đúng padding 13px như trong ảnh DevTools
+                    '&:last-child': { pb: '13px' }, // Ghi đè padding-bottom mặc định của thẻ CardContent MUI
+                    textAlign: 'left' // Lotteria căn trái nội dung
+                }}>
+                    {/* Tên sản phẩm */}
                     <Typography 
                         gutterBottom 
-                        variant="h6" 
+                        variant="subtitle1" 
                         component="h2" 
                         onClick={handleViewDetails}
                         sx={{ 
-                            fontWeight: 'bold', 
+                            fontWeight: 600, 
                             cursor: 'pointer',
-                            minHeight: '3rem', // Giữ chiều cao tên đồng đều (2 dòng)
+                            color: '#3f72af', // Màu xanh lam giống trong ảnh (bạn có thể đổi về màu đen #333 nếu muốn)
+                            fontSize: '1.05rem',
+                            lineHeight: 1.3,
+                            mb: 1,
                             display: '-webkit-box',
                             WebkitLineClamp: 2,
                             WebkitBoxOrient: 'vertical',
                             overflow: 'hidden',
-                            lineHeight: 1.3
                         }}
                     >
                         {product.name}
                     </Typography>
 
-                    {/* Mô tả - Cắt ngắn 1 dòng giống ComboCard */}
-                    <Typography variant="body2" color="text.secondary" noWrap>
-                        {product.description || 'Mô tả đang cập nhật...'}
-                    </Typography>
-                    
-                    {/* Giá tiền - Màu đỏ và in đậm giống ComboCard */}
-                    <Box sx={{ mt: 2, display: 'flex', alignItems: 'center' }}>
-                        <Typography variant="h5" color="error.main" sx={{ fontWeight: 'bold' }}>
-                            {parseInt(product.price).toLocaleString('vi-VN')}đ
-                        </Typography>
-                    </Box>
-                </CardContent>
-
-                {/* === PHẦN NÚT BẤM === */}
-                <CardActions sx={{ justifyContent: 'center', p: 2, pt: 0 }}>
-                    <Button 
-                        variant="contained" 
-                        fullWidth
-                        startIcon={!adding && <AddShoppingCartIcon />} 
-                        onClick={handleAddToCart}
-                        disabled={adding}
-                        sx={{
-                            textTransform: 'none', // Giữ chữ thường tự nhiên
-                            fontWeight: 600,
-                            py: 1
+                    {/* Mô tả phụ (Dòng chữ xám nhỏ) */}
+                    <Typography 
+                        variant="body2" 
+                        sx={{ 
+                            color: '#8fa0b5', 
+                            fontSize: '0.85rem',
+                            mb: 2,
+                            display: '-webkit-box',
+                            WebkitLineClamp: 2,
+                            WebkitBoxOrient: 'vertical',
+                            overflow: 'hidden',
                         }}
                     >
-                        {adding ? 'Đang thêm...' : 'Thêm vào giỏ'}
-                    </Button>
-                </CardActions>
+                        {product.description || 'Lotteria tạm thời thay Cà chua bằng Dưa leo'}
+                    </Typography>
+                    
+                    {/* Hàng chứa Giá tiền & Nút Thêm (Nằm dưới cùng) */}
+                    <Box sx={{ mt: 'auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                       <Typography 
+                            variant="h6" 
+                            sx={{ 
+                                fontWeight: 700, 
+                                color: '#f97316', // Đổi màu giá tiền
+                                fontSize: '1.25rem',
+                            }}
+                        >
+                            {parseInt(product.price).toLocaleString('vi-VN')} đ
+                        </Typography>
+
+                        {/* Nút dấu + hình vuông */}
+                        <Button 
+                            variant="contained" 
+                            onClick={handleAddToCart}
+                            disabled={adding}
+                            sx={{
+                                minWidth: 0,
+                                width: 38, // Nút vuông nhỏ
+                                height: 38,
+                                p: 0,
+                                borderRadius: '8px',
+                                bgcolor: '#f97316', // Đổi màu nền nút
+                                color: 'white',
+                                boxShadow: 'none',
+                                '&:hover': { bgcolor: '#ea580c', boxShadow: 'none' } // Đổi màu hover cho hợp tông cam
+                            }}
+                        >
+                            {adding ? (
+                                <CircularProgress size={16} color="inherit" />
+                            ) : (
+                                <span style={{ fontSize: '1.8rem', lineHeight: 0, paddingBottom: '3px' }}>+</span>
+                            )}
+                        </Button>
+                    </Box>
+                </CardContent>
             </Card>
         </Badge>
     );

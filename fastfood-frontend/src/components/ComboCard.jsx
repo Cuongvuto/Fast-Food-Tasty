@@ -67,9 +67,19 @@ function ComboCard({ combo }) {
                 
                 {/* Phần hiển thị giá */}
                 <Box sx={{ mt: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
-                    {/* Giá cuối cùng (đã giảm) */}
-                    <Typography variant="h5" color="error.main" sx={{ fontWeight: 'bold' }}>
-                        {finalPrice.toLocaleString('vi-VN')}đ
+                    {/* Giá cuối cùng (đã giảm) - ĐÃ FIX LỖI product -> combo */}
+                    <Typography 
+                        variant="h6" 
+                        sx={{ 
+                            fontWeight: 700, 
+                            color: 'primary.main', // Đổi sang màu cam chủ đạo
+                            fontFamily: '"Open Sans", sans-serif', // Ép về font không chân cho số
+                            fontSize: '1.25rem',
+                            mt: 'auto', // Đẩy giá tiền và nút bấm xuống đáy thẻ (nếu thẻ cha có display flex cột)
+                            mb: 2 // Tạo khoảng cách một chút với nút bấm
+                        }}
+                    >
+                        {parseInt(combo.price).toLocaleString('vi-VN')}đ
                     </Typography>
 
                     {/* Giá gốc (gạch ngang) - Chỉ hiển thị nếu có giảm giá */}

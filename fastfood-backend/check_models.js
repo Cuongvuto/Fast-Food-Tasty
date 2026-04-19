@@ -23,7 +23,7 @@ async function listModels() {
         const chatModels = data.models.filter(m => m.supportedGenerationMethods.includes("generateContent"));
 
         chatModels.forEach(model => {
-            console.log(`🔹 Tên: ${model.name}`); // Đây là cái bạn cần copy (ví dụ: models/gemini-1.5-flash)
+            console.log(`🔹 Tên: ${model.name}`); 
             console.log(`   Mô tả: ${model.displayName}`);
             console.log("------------------------------------------");
         });

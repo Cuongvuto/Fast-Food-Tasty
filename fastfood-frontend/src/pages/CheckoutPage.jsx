@@ -10,12 +10,13 @@ import PaymentIcon from '@mui/icons-material/Payment';
 import ShoppingBagIcon from '@mui/icons-material/ShoppingBag';
 import DiscountIcon from '@mui/icons-material/Discount';
 import ClearIcon from '@mui/icons-material/Clear';
+import QrCodeScannerIcon from '@mui/icons-material/QrCodeScanner'; // Icon thêm cho sinh động
 import { getImageUrl } from '../utils/imageHelper';
 
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import apiClient from'../API/axiosConfig';
+import apiClient from '../API/axiosConfig';
 
 function CheckoutPage() {
     const theme = useTheme();
@@ -107,7 +108,17 @@ function CheckoutPage() {
 
         const orderData = {
             userId: user.id,
-            items: cartItems.map(item => ({ productId: item.id, quantity: item.quantity, price: item.price })),
+            items: cartItems.map(item => {
+                const isComboItem = item.isCombo || item.id.toString().startsWith('combo_');
+                const realId = isComboItem ? parseInt(item.id.toString().replace('combo_', '')) : item.id;
+                
+                return { 
+                    productId: isComboItem ? null : realId, 
+                    comboId: isComboItem ? realId : null,
+                    quantity: item.quantity, 
+                    price: item.price 
+                };
+            }),
             shippingFullName: fullName,
             shippingAddress: address,
             shippingPhone: phone,
@@ -121,9 +132,11 @@ function CheckoutPage() {
         };
 
         try {
+            // Lưu đơn hàng vào Database
             const orderRes = await apiClient.post('/orders', orderData);
             const newOrderId = orderRes.data.orderId;
 
+            // Xử lý chuyển hướng dựa trên phương thức thanh toán
             if (paymentMethod === 'cod') {
                 clearCart();
                 navigate('/order-success'); 
@@ -138,11 +151,30 @@ function CheckoutPage() {
                     if (paymentRes.data.paymentUrl) {
                         window.location.href = paymentRes.data.paymentUrl;
                     } else {
-                        throw new Error("Không nhận được link thanh toán");
+                        throw new Error("Không nhận được link thanh toán VNPay");
                     }
                 } catch (payErr) {
                     console.error("Lỗi VNPay:", payErr);
                     setError('Không thể kết nối cổng thanh toán VNPay.');
+                    setPlacingOrder(false);
+                }
+            }
+            // THÊM LOGIC GỌI API QR Ở ĐÂY
+            else if (paymentMethod === 'qr') {
+                try {
+                    const qrRes = await apiClient.post('/payment/create_qr_url', {
+                        orderId: newOrderId,
+                        amount: totalPrice
+                    });
+                    if (qrRes.data.paymentUrl) {
+                        // Chuyển hướng sang trang quét mã QR của bạn
+                        window.location.href = qrRes.data.paymentUrl;
+                    } else {
+                        throw new Error("Không nhận được link thanh toán QR");
+                    }
+                } catch (qrErr) {
+                    console.error("Lỗi QR Payment:", qrErr);
+                    setError('Không thể tạo trang quét mã QR.');
                     setPlacingOrder(false);
                 }
             }
@@ -173,8 +205,7 @@ function CheckoutPage() {
 
             <Grid container spacing={3}>
                 
-                {/* === CỘT TRÁI: THÔNG TIN (Size 8) === */}
-                {/* SỬA Ở ĐÂY: Dùng prop 'size' thay vì 'item xs md' */}
+                {/* === CỘT TRÁI: THÔNG TIN === */}
                 <Grid size={{ xs: 12, md: 8 }}>
                     <Paper sx={{ p: 3, mb: 3, borderRadius: 2, boxShadow: 2 }}>
                         <Typography variant="h6" gutterBottom sx={{ fontWeight: 600, display: 'flex', alignItems: 'center', color: 'primary.main' }}>
@@ -204,22 +235,32 @@ function CheckoutPage() {
                         <Typography variant="h6" gutterBottom sx={{ fontWeight: 600, display: 'flex', alignItems: 'center', color: 'primary.main' }}>
                             <PaymentIcon sx={{ mr: 1 }} /> Hình thức thanh toán
                         </Typography>
+                        {/* THÊM TÙY CHỌN QR VÀO ĐÂY */}
                         <RadioGroup value={paymentMethod} onChange={(e) => setPaymentMethod(e.target.value)}>
                             <FormControlLabel value="cod" control={<Radio disabled={placingOrder} />} label="Thanh toán khi nhận hàng (COD)" />
+                            <FormControlLabel 
+                                value="qr" 
+                                control={<Radio disabled={placingOrder} />} 
+                                label={
+                                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                        Chuyển khoản Ngân hàng (Quét mã QR)
+                                        <QrCodeScannerIcon color="primary" sx={{ ml: 1, fontSize: 20 }} />
+                                    </Box>
+                                } 
+                            />
                             <FormControlLabel value="banking" control={<Radio disabled={placingOrder} />} label="Thanh toán Online qua VNPay (ATM/Banking)" />
                         </RadioGroup>
                     </Paper>
                 </Grid>
 
-                {/* === CỘT PHẢI: ĐƠN HÀNG (Size 4 - Sticky) === */}
-               
+                {/* === CỘT PHẢI: ĐƠN HÀNG === */}
                 <Grid size={{ xs: 12, md: 4 }}>
                     <Paper sx={{ 
                         p: 3, 
                         borderRadius: 2, 
                         boxShadow: 3, 
                         position: 'sticky', 
-                        top: 100,           
+                        top: 100,          
                         height: 'fit-content' 
                     }}>
                         <Typography variant="h6" gutterBottom sx={{ fontWeight: 600, textAlign: 'center', mb: 2 }}>

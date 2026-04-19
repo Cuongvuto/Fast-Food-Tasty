@@ -1,7 +1,7 @@
 // src/pages/homeSections/SuggestionsSection.jsx
 import React, { useState, useEffect } from 'react';
 import apiClient from '../../API/axiosConfig';
-import { Container, Typography, Box, CircularProgress, Grid } from '@mui/material';
+import { Container, Typography, Box, CircularProgress } from '@mui/material';
 import ProductCard from '../../components/ProductCard';
 
 // === COMPONENT BỌC NGOÀI ĐỂ THÊM NHÃN GIẢM GIÁ ===
@@ -12,14 +12,14 @@ function SuggestionCardWrapper({ product, index }) {
 
     return (
         <Box sx={{ position: 'relative', height: '100%' }}>
-            {/* Nhãn giảm giá màu ĐỎ (Giống ảnh) */}
+            {/* Nhãn giảm giá màu ĐỎ */}
             <Box
                 sx={{
                     position: 'absolute',
-                    top: 15, // Căn chỉnh vị trí đè lên ảnh
+                    top: 15, 
                     left: 15,
                     zIndex: 10,
-                    bgcolor: '#FF0000', // Màu đỏ tươi
+                    bgcolor: '#FF0000', 
                     color: 'white',
                     fontWeight: '800',
                     fontSize: '0.9rem',
@@ -45,7 +45,7 @@ function SuggestionsSection() {
     useEffect(() => {
         const fetchProducts = async () => {
             try {
-                // Lấy đúng 5 sản phẩm để xếp bố cục (3 trên - 2 dưới)
+                // Bạn có thể tăng số lượng lên 8 hoặc 10 để vuốt cho đã
                 const response = await apiClient.get('/products?limit=5'); 
                 setProducts(response.data.data);
             } catch (err) {
@@ -61,57 +61,65 @@ function SuggestionsSection() {
 
     return (
         <Container maxWidth="lg" sx={{ my: 8 }}>
-            {/* 1. HEADER: Giống ảnh mẫu */}
+            {/* 1. HEADER */}
             <Box sx={{ textAlign: 'center', mb: 6 }}>
                 <Typography 
                     variant="h4" 
                     component="h2" 
                     sx={{ 
-                        fontWeight: 800, // Chữ đậm
-                        color: '#000',   // Màu đen tuyền
+                        fontWeight: 800,
+                        color: '#000',
                         mb: 1,
-                        fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif' // Font hiện đại, không chân
+                        fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif'
                     }}
                 >
-                    Our Suggest
+                    Gợi ý của chúng tôi
                 </Typography>
-                <Typography 
-                    variant="body1" 
-                    sx={{ 
-                        color: '#666',
-                        fontSize: '1rem'
-                    }}
-                >
-                    Lorem ipsum dolor sit amet consectetur. Maecenas nunc.
-                </Typography>
+                <Typography variant="body1" sx={{ color: '#666', fontSize: '1rem' }} />
             </Box>
             
-            {/* 2. GRID LAYOUT: Bố cục 3 trên - 2 dưới */}
-            <Grid 
-                container 
-                spacing={4} // Khoảng cách giữa các thẻ
-                justifyContent="center" // Căn giữa các phần tử (giúp hàng dưới 2 cái nằm giữa)
+            {/* 2. SLIDER LAYOUT: Đổi từ Grid sang Box trượt ngang */}
+            <Box 
+                sx={{ 
+                    display: 'flex',
+                    overflowX: 'auto', // Bật cuộn ngang
+                    gap: 3, // Khoảng cách giữa các thẻ sản phẩm
+                    pb: 3, // Đệm dưới để không bị cắt bóng đổ của thẻ (box-shadow)
+                    pt: 1, // Đệm trên một chút
+                    px: 1, // Đệm hai bên để thẻ đầu/cuối không sát viền màn hình
+                    
+                    // Cấu hình trượt mượt mà
+                    scrollBehavior: 'smooth',
+                    scrollSnapType: 'x mandatory', // Giúp thẻ tự động "khớp" vào vị trí khi vuốt
+                    
+                    // Ẩn thanh cuộn mặc định cho đẹp
+                    '&::-webkit-scrollbar': { display: 'none' },
+                    msOverflowStyle: 'none',
+                    scrollbarWidth: 'none',
+                }}
             >
                 {products.map((product, index) => (
-                    <Grid 
-                        item 
-                        key={product.id} 
-                        xs={12}    // Mobile: 1 cột
-                        sm={6}     // Tablet: 2 cột
-                        md={4}     // Desktop: 3 cột
+                    <Box 
+                        key={product.id}
+                        sx={{
+                            // Cố định chiều rộng của thẻ. Đổi số này nếu muốn thẻ to/nhỏ hơn
+                            minWidth: { xs: '260px', sm: '280px', md: '300px' }, 
+                            flexShrink: 0, // NGĂN CHẶN thẻ bị bóp méo khi màn hình nhỏ
+                            scrollSnapAlign: 'start', // Điểm neo khi vuốt trượt
+                        }}
                     >
                         <SuggestionCardWrapper product={product} index={index} />
-                    </Grid>
+                    </Box>
                 ))}
-            </Grid>
+            </Box>
 
-            {/* 3. FOOTER: Nút See all màu cam */}
-            <Box sx={{ textAlign: 'center', mt: 6 }}>
+            {/* 3. FOOTER */}
+            <Box sx={{ textAlign: 'center', mt: 4 }}>
                 <Typography 
                     component="a" 
                     href="/menu" 
                     sx={{ 
-                        color: '#FF6B00', // Màu cam
+                        color: '#FF6B00',
                         fontWeight: 'bold',
                         textDecoration: 'none',
                         cursor: 'pointer',

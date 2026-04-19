@@ -63,7 +63,7 @@ const cancelOrder = async (req, res) => {
     }
 };
 
-// --- 3. TẠO ĐƠN HÀNG (CÓ XỬ LÝ VOUCHER) ---
+// --- 3. TẠO ĐƠN HÀNG (CÓ XỬ LÝ VOUCHER & COMBO) ---
 const createOrder = async (req, res) => {
     const { 
         userId, items, 
@@ -151,11 +151,16 @@ const createOrder = async (req, res) => {
         
         const orderId = orderResult.insertId;
 
-        // Lưu chi tiết sản phẩm
+        // Lưu chi tiết sản phẩm (ĐÃ SỬA THÊM COMBO_ID)
         if (items && items.length > 0) {
-            const itemSql = 'INSERT INTO order_items (order_id, product_id, quantity, price, price_at_purchase) VALUES ?';
+            const itemSql = 'INSERT INTO order_items (order_id, product_id, combo_id, quantity, price, price_at_purchase) VALUES ?';
             const itemValues = items.map(item => [
-                orderId, item.productId, item.quantity, item.price, item.price
+                orderId, 
+                item.productId || null, 
+                item.comboId || null, 
+                item.quantity, 
+                item.price, 
+                item.price
             ]);
             await connection.query(itemSql, [itemValues]);
         }
@@ -244,7 +249,7 @@ const updateOrderStatus = async (req, res) => {
     }
 };
 
-// --- 6. LẤY CHI TIẾT ĐƠN HÀNG ---
+// --- 6. LẤY CHI TIẾT ĐƠN HÀNG (ĐÃ SỬA JOIN BẢNG COMBOS) ---
 const getOrderById = async (req, res) => {
     const orderId = req.params.id;
     try {
@@ -252,7 +257,15 @@ const getOrderById = async (req, res) => {
         const [orderDetails] = await db.query(orderSql, [orderId]);
         if (orderDetails.length === 0) return res.status(404).json({ message: 'Đơn hàng không tồn tại.' });
 
-        const itemsSql = `SELECT oi.*, p.name as product_name, p.image_url as product_image_url FROM order_items oi JOIN products p ON oi.product_id = p.id WHERE oi.order_id = ?`;
+        const itemsSql = `
+            SELECT oi.*, 
+                   COALESCE(p.name, c.name) as product_name, 
+                   COALESCE(p.image_url, c.image_url) as product_image_url 
+            FROM order_items oi 
+            LEFT JOIN products p ON oi.product_id = p.id 
+            LEFT JOIN combos c ON oi.combo_id = c.id
+            WHERE oi.order_id = ?
+        `;
         const [orderItems] = await db.query(itemsSql, [orderId]);
 
         res.status(200).json({ message: 'Thành công', data: { ...orderDetails[0], items: orderItems } });

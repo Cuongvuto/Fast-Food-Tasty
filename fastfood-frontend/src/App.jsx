@@ -21,6 +21,7 @@ import CheckoutPage from './pages/CheckoutPage';
 import OrderSuccessPage from './pages/OrderSuccessPage';
 import PaymentResultPage from './pages/PaymentResultPage';
 import ProfilePage from './pages/ProfilePage';
+import QrPaymentPage from './pages/QrPaymentPage';
 
 // --- Admin Pages ---
 import AdminHomePage from './pages/AdminHomePage';
@@ -32,6 +33,7 @@ import AdminUsersPage from './pages/AdminUsersPage';
 import AdminCombosPage from './pages/AdminCombosPage';
 import AdminAddComboPage from './pages/AdminAddComboPage';
 import AdminEditComboPage from './pages/AdminEditComboPage';
+
 
 function App() {
   const location = useLocation();
@@ -62,6 +64,8 @@ function App() {
           <Route path="/order-success" element={<OrderSuccessPage />} />
           <Route path="/payment-result" element={<PaymentResultPage />} />
           <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/qr-payment" element={<QrPaymentPage />} />
+          
 
           {/* === Admin Routes === */}
           <Route element={<AdminRoute />}>
@@ -74,6 +78,7 @@ function App() {
             <Route path="/admin/combos" element={<AdminCombosPage />} />
             <Route path="/admin/combos/add" element={<AdminAddComboPage />} />
             <Route path="/admin/combos/edit/:comboId" element={<AdminEditComboPage />} />
+
           </Route>
         </Routes>
       </Box>

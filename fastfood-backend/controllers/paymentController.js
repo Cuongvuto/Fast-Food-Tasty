@@ -81,3 +81,73 @@ exports.createPaymentUrl = (req, res) => {
         res.status(500).json({ message: 'Lỗi server khi tạo thanh toán' });
     }
 };
+
+// fastfood-backend/controllers/paymentController.js
+
+// 1. THÊM CẶP NGOẶC NHỌN {} Ở ĐÂY
+const { PayOS } = require("@payos/node");
+
+// Khởi tạo PayOS
+const payos = new PayOS(
+  process.env.PAYOS_CLIENT_ID,
+  process.env.PAYOS_API_KEY,
+  process.env.PAYOS_CHECKSUM_KEY
+);
+
+exports.createQrPaymentUrl = async (req, res) => {
+    try {
+        const { amount, orderId } = req.body;
+
+        // Xác định domain Frontend
+        const frontendUrl = process.env.NODE_ENV === 'production' 
+            ? 'https://fast-food-tasty.vercel.app' 
+            : 'http://localhost:5173';
+
+        // Chuẩn bị dữ liệu theo chuẩn PayOS
+        const orderData = {
+            orderCode: Number(orderId), // BẮT BUỘC là số nguyên
+            amount: Number(amount),
+            description: `Thanh toan don ${orderId}`.substring(0, 25),
+            returnUrl: `${frontendUrl}/order-success`, 
+            cancelUrl: `${frontendUrl}/checkout`,
+        };
+
+        // 2. CẬP NHẬT LẠI HÀM TẠO LINK (phiên bản mới dùng paymentRequests.create)
+        const paymentLinkRes = await payos.paymentRequests.create(orderData);
+
+        // Trả link trang thanh toán của PayOS về cho Frontend
+        res.status(200).json({ paymentUrl: paymentLinkRes.checkoutUrl });
+
+    } catch (error) {
+        console.error("Lỗi tạo link PayOS:", error);
+        res.status(500).json({ message: 'Lỗi server khi tạo thanh toán QR' });
+    }
+};
+
+exports.handlePayOSWebhook = async (req, res) => {
+    try {
+        const webhookData = req.body;
+
+        // 3. CẬP NHẬT LẠI HÀM XÁC THỰC WEBHOOK (phiên bản mới dùng webhooks.verify)
+        const verifiedData = payos.webhooks.verify(webhookData);
+        
+        // Nếu thanh toán thành công
+        if (verifiedData.code === '00' || verifiedData.success === true) {
+            const orderId = verifiedData.data ? verifiedData.data.orderCode : verifiedData.orderCode;
+            const amountPaid = verifiedData.data ? verifiedData.data.amount : verifiedData.amount;
+
+            // Mở comment đoạn này ra khi bạn có model Order
+            const order = await order.findById(orderId);
+            order.status = 'PAID';
+            await order.save();
+            
+            console.log(`Đã nhận ${amountPaid}đ cho đơn hàng ${orderId}`);
+        }
+
+        // BẮT BUỘC phải trả về status 200 cho PayOS
+        res.status(200).json({ success: true });
+    } catch (error) {
+        console.error("Lỗi Webhook PayOS:", error);
+        res.status(400).json({ success: false, message: error.message });
+    }
+};

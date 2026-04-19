@@ -10,7 +10,6 @@ import {
 } from '@mui/material';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline';
-import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
 import HomeIcon from '@mui/icons-material/Home';
 import CategoryIcon from '@mui/icons-material/Category';
 import ProductCard from '../components/ProductCard'; 
@@ -135,18 +134,16 @@ function ProductDetailPage() {
 
             {/* Main Product Details - UPDATED LAYOUT */}
             <Paper elevation={0} sx={{ p: { xs: 2, md: 4 }, borderRadius: 4, border: `1px solid ${theme.palette.grey[200]}` }}>
-                {/* Change: Use Grid container to wrap both image and info */}
-                <Grid container spacing={4} alignItems="flex-start"> {/* Use alignItems="flex-start" */}
-                    {/* Column 1: Image (Takes up half the width on medium screens) */}
+                <Grid container spacing={4} alignItems="flex-start">
+                    {/* Column 1: Image */}
                     <Grid item xs={12} md={6}>
                         <Box sx={{
-                            // Adjust height as needed, maybe slightly taller
                             height: { xs: 300, sm: 400, md: 450 },
                             borderRadius: 3,
                             overflow: 'hidden',
                             boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-                            position: 'sticky', // Make image sticky on scroll if needed (optional)
-                            top: 100 // Adjust top offset if using sticky header
+                            position: 'sticky', 
+                            top: 100 
                         }}>
                             <img
                                 src={getImageUrl(product.image_url) || '/placeholder-product.jpg'}
@@ -156,11 +153,10 @@ function ProductDetailPage() {
                         </Box>
                     </Grid>
 
-                    {/* Column 2: Info & Actions (Takes up the other half) */}
+                    {/* Column 2: Info & Actions */}
                     <Grid item xs={12} md={6}>
-                        {/* Stack remains the same internally */}
                         <Stack spacing={2.5}>
-                             <Typography
+                            <Typography
                                 variant="h3"
                                 component="h1"
                                 sx={{ fontWeight: 'bold', lineHeight: 1.3 }}
@@ -172,29 +168,78 @@ function ProductDetailPage() {
                                     Danh mục: {product.category_name}
                                 </Typography>
                             )}
-                            <Stack direction="row" alignItems="center" spacing={1}>
-                                <AttachMoneyIcon sx={{ color: 'primary.main', fontSize: '2.2rem' }} />
-                                <Typography variant="h4" color="primary" sx={{ fontWeight: 'bold' }}>
-                                    {parseInt(product.price).toLocaleString('vi-VN')} VNĐ
+                            
+                            {/* --- PHẦN GIÁ TIỀN ĐÃ SỬA --- */}
+                            <Box sx={{ display: 'flex', alignItems: 'center', mt: 2 }}>
+                                <Typography 
+                                    variant="h4" 
+                                    sx={{ 
+                                        fontWeight: 800, 
+                                        color: 'primary.main',
+                                        fontFamily: '"Open Sans", sans-serif',
+                                    }}
+                                >
+                                    {parseInt(product.price).toLocaleString('vi-VN')}đ
                                 </Typography>
-                            </Stack>
+                            </Box>
+
                             <Divider sx={{ my: 1 }} />
+
+                            {/* --- PHẦN MÔ TẢ ĐÃ SỬA --- */}
                             <Box>
-                                <Typography variant="h6" sx={{ fontWeight: 600, mb: 1}}>Mô tả:</Typography>
-                                <Typography variant="body1" sx={{ color: 'text.secondary', lineHeight: 1.7 }}>
+                                <Typography variant="subtitle2" sx={{ textTransform: 'uppercase', color: 'text.secondary', fontWeight: 700, letterSpacing: 1, mb: 1 }}>
+                                    Chi tiết món ăn
+                                </Typography>
+                                <Typography variant="body1" sx={{ color: 'text.primary', lineHeight: 1.8, fontSize: '1.05rem' }}>
                                     {product.description || 'Sản phẩm này hiện chưa có mô tả chi tiết.'}
                                 </Typography>
                             </Box>
+
                             <Divider sx={{ my: 1 }} />
+
+                            {/* --- PHẦN SỐ LƯỢNG --- */}
                             <Box>
-                                <Typography variant="h6" sx={{ fontWeight: 600, mb: 1 }}>Số lượng:</Typography>
-                                <Stack direction="row" alignItems="center" spacing={1} sx={{ p: 1, borderRadius: 2, bgcolor: theme.palette.grey[100], border: `1px solid ${theme.palette.grey[300]}`, maxWidth: 'fit-content' }}>
-                                    <IconButton onClick={() => handleQuantityChange(-1)} disabled={quantity === 1} size="small"><RemoveCircleOutlineIcon /></IconButton>
-                                    <Typography variant="h6" sx={{ minWidth: '40px', textAlign: 'center', fontWeight: 'bold' }}>{quantity}</Typography>
-                                    <IconButton onClick={() => handleQuantityChange(1)} size="small"><AddCircleOutlineIcon /></IconButton>
+                                <Typography variant="subtitle2" sx={{ textTransform: 'uppercase', color: 'text.secondary', fontWeight: 700, letterSpacing: 1, mb: 1.5 }}>
+                                    Số lượng
+                                </Typography>
+                                <Stack direction="row" alignItems="center" spacing={2} sx={{ p: 0.5, borderRadius: 50, bgcolor: theme.palette.grey[50], border: `1px solid ${theme.palette.grey[300]}`, maxWidth: 'fit-content' }}>
+                                    <IconButton onClick={() => handleQuantityChange(-1)} disabled={quantity === 1} color="primary">
+                                        <RemoveCircleOutlineIcon fontSize="large" />
+                                    </IconButton>
+                                    <Typography variant="h6" sx={{ minWidth: '30px', textAlign: 'center', fontWeight: 700, fontFamily: '"Open Sans", sans-serif' }}>
+                                        {quantity}
+                                    </Typography>
+                                    <IconButton onClick={() => handleQuantityChange(1)} color="primary">
+                                        <AddCircleOutlineIcon fontSize="large" />
+                                    </IconButton>
                                 </Stack>
                             </Box>
-                            <Button variant="contained" size="large" onClick={handleAddToCart} disabled={adding} sx={{ mt: 2, py: 1.5, fontSize: '1.1rem', fontWeight: 'bold', background: `linear-gradient(45deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`, '&:hover': { transform: 'scale(1.03)', boxShadow: 6 }, transition: 'all 0.3s ease' }}>
+
+                            {/* --- NÚT THÊM VÀO GIỎ ĐÃ SỬA MÀU --- */}
+                            <Button 
+                                variant="contained" 
+                                size="large" 
+                                onClick={handleAddToCart} 
+                                disabled={adding} 
+                                sx={{ 
+                                    mt: 4, 
+                                    py: 1.8, 
+                                    fontSize: '1.1rem', 
+                                    fontWeight: 700, 
+                                    textTransform: 'uppercase', 
+                                    letterSpacing: 1,
+                                    borderRadius: '50px',
+                                    backgroundColor: 'primary.main', 
+                                    color: 'white',
+                                    boxShadow: '0 8px 16px rgba(249, 115, 22, 0.3)', 
+                                    '&:hover': { 
+                                        backgroundColor: '#ea580c', 
+                                        transform: 'translateY(-2px)', 
+                                        boxShadow: '0 12px 20px rgba(249, 115, 22, 0.4)' 
+                                    }, 
+                                    transition: 'all 0.3s ease' 
+                                }}
+                            >
                                 {adding ? <CircularProgress size={26} color="inherit" /> : 'Thêm vào giỏ'}
                             </Button>
                         </Stack>
@@ -202,7 +247,7 @@ function ProductDetailPage() {
                 </Grid>
             </Paper>
 
-            {/* Related Products Section (remains the same) */}
+            {/* Related Products Section */}
             {relatedProducts.length > 0 && (
                 <Box sx={{ mt: 8 }}>
                     <Typography variant="h4" sx={{ fontWeight: 'bold', mb: 4, textAlign: 'center' }}>
@@ -223,7 +268,6 @@ function ProductDetailPage() {
                     )}
                 </Box>
             )}
-
         </Container>
     );
 }
