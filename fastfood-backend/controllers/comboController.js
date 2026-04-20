@@ -19,9 +19,12 @@ const calculateComboPrices = async (items, discountAmount, connection) => {
     const priceMap = new Map();
     products.forEach(p => priceMap.set(p.id, parseFloat(p.price)));
 
-    // 4. Tính toán giá gốc (original_price)
+   // 4. Tính toán giá gốc
     let calculatedOriginalPrice = 0;
     for (const item of items) {
+        if (!item.quantity || item.quantity <= 0) {
+            throw new Error('Số lượng sản phẩm trong combo phải lớn hơn 0.');
+        }
         const price = priceMap.get(item.product_id);
         if (!price) {
             throw new Error(`Sản phẩm ID ${item.product_id} không tồn tại hoặc không có giá.`);
@@ -29,8 +32,11 @@ const calculateComboPrices = async (items, discountAmount, connection) => {
         calculatedOriginalPrice += price * item.quantity;
     }
 
-    // 5. Tính toán giá cuối cùng (final_price)
+    // 5. Tính toán giá cuối cùng
     const discount = parseFloat(discountAmount) || 0;
+    if (discount < 0) {
+        throw new Error('Số tiền giảm giá không được là số âm.');
+    }
     const calculatedFinalPrice = calculatedOriginalPrice - discount;
 
     // Đảm bảo giá cuối cùng không âm
@@ -48,45 +54,54 @@ const calculateComboPrices = async (items, discountAmount, connection) => {
 /**
  * @desc    Tạo combo mới (cho Admin)
  * @route   POST /api/combos
- * @access  Admin
  */
 const createCombo = async (req, res) => {
-    
-    const { name, description, discount_amount_from_form, image_url, is_available, items } = req.body;
+    // 1. Lấy dữ liệu từ req.body (tất cả đều đang là chuỗi do FormData)
+    const { name, description, discount_amount_from_form, is_available, items } = req.body;
 
-    if (!name || !items || items.length === 0) {
-        return res.status(400).json({ message: 'Vui lòng cung cấp tên và danh sách sản phẩm cho combo.' });
+    // 2. Xử lý Ảnh (Lấy từ Cloudinary nếu có file up lên, nếu không lấy link cũ)
+    let finalImageUrl = req.body.image_url || ""; 
+    if (req.file && req.file.path) {
+        finalImageUrl = req.file.path;
     }
+
+    // 3. Xử lý Mảng Items (Dịch từ chuỗi JSON sang Array)
+    let parsedItems = [];
+    try {
+        parsedItems = typeof items === 'string' ? JSON.parse(items) : items;
+    } catch (error) {
+        return res.status(400).json({ message: 'Định dạng danh sách sản phẩm không hợp lệ.' });
+    }
+
+    if (!name || !parsedItems || parsedItems.length === 0) {
+        return res.status(400).json({ message: 'Vui lòng cung cấp tên và ít nhất 1 sản phẩm cho combo.' });
+    }
+
+    // 4. Xử lý Boolean (FormData gửi lên 'true' hoặc 'false' dạng chữ)
+    const isAvail = (is_available === 'true' || is_available === true) ? 1 : 0;
 
     let connection;
     try {
         connection = await db.getConnection();
         await connection.beginTransaction();
 
-        // 1. Tính toán các loại giá một cách an toàn
         const { original_price, discount_amount, final_price } = await calculateComboPrices(
-            items,
+            parsedItems,
             discount_amount_from_form,
             connection
         );
 
-        // 2. Thêm vào bảng 'combos' với các giá đã tính
         const comboSql = `
             INSERT INTO combos (name, description, original_price, discount_amount, price, image_url, is_available) 
             VALUES (?, ?, ?, ?, ?, ?, ?)
         `;
         const [comboResult] = await connection.query(comboSql, [
-            name, description,
-            original_price,      // Giá gốc
-            discount_amount,     // Tiền giảm
-            final_price,         // Giá cuối cùng
-            image_url,
-            is_available === true ? 1 : 0
+            name, description, original_price, discount_amount, final_price, finalImageUrl, isAvail
         ]);
+        
         const newComboId = comboResult.insertId;
 
-        // 3. Thêm vào bảng 'combo_items'
-        const itemValues = items.map(item => [newComboId, item.product_id, item.quantity]);
+        const itemValues = parsedItems.map(item => [newComboId, item.product_id, item.quantity]);
         const itemSql = 'INSERT INTO combo_items (combo_id, product_id, quantity) VALUES ?';
         await connection.query(itemSql, [itemValues]);
 
@@ -94,7 +109,7 @@ const createCombo = async (req, res) => {
         
         res.status(201).json({
             message: 'Tạo combo mới thành công',
-            data: { id: newComboId, ...req.body }
+            data: { id: newComboId, name, final_price }
         });
 
     } catch (error) {
@@ -109,70 +124,84 @@ const createCombo = async (req, res) => {
 /**
  * @desc    Cập nhật combo (cho Admin)
  * @route   PUT /api/combos/:id
- * @access  Admin
  */
 const updateCombo = async (req, res) => {
     const comboId = req.params.id;
-    const { name, description, discount_amount_from_form, image_url, is_available, items } = req.body;
+    // Log để kiểm tra xem Frontend gửi gì lên
+    console.log("Dữ liệu nhận được từ Frontend:", req.body);
 
-    if (!name || !items || items.length === 0) {
-        return res.status(400).json({ message: 'Vui lòng cung cấp tên và danh sách sản phẩm.' });
+    const { name, description, discount_amount_from_form, is_available, items } = req.body;
+
+    // 1. Xử lý Ảnh
+    let finalImageUrl = req.body.image_url || "";
+    if (req.file && req.file.path) {
+        finalImageUrl = req.file.path;
     }
+
+    // 2. Xử lý Mảng Items
+    let parsedItems = [];
+    try {
+        // Nếu là string thì parse, nếu đã là object/array thì dùng luôn
+        parsedItems = typeof items === 'string' ? JSON.parse(items) : items;
+    } catch (error) {
+        console.error("Lỗi Parse JSON items:", error);
+        return res.status(400).json({ message: 'Định dạng danh sách sản phẩm không hợp lệ.' });
+    }
+
+    // KIỂM TRA ĐIỀU KIỆN (Lỗi 400 thường ở đây)
+    if (!name) {
+        return res.status(400).json({ message: 'Tên combo không được để trống.' });
+    }
+    if (!parsedItems || !Array.isArray(parsedItems) || parsedItems.length === 0) {
+        return res.status(400).json({ message: 'Combo phải có ít nhất 1 sản phẩm.' });
+    }
+
+    // 3. Xử lý Boolean (Đảm bảo không bị lỗi kiểu dữ liệu)
+    const isAvail = (is_available === 'true' || is_available === true || is_available === '1' || is_available === 1) ? 1 : 0;
 
     let connection;
     try {
         connection = await db.getConnection();
         await connection.beginTransaction();
 
-        // 1. Tính toán lại giá
+        // 4. Tính toán giá (Hàm này phải tồn tại ở đầu file controller)
         const { original_price, discount_amount, final_price } = await calculateComboPrices(
-            items,
+            parsedItems,
             discount_amount_from_form,
             connection
         );
 
-        // 2. Cập nhật bảng 'combos'
+        // 5. Cập nhật SQL
         const comboSql = `
             UPDATE combos SET 
-            name = ?, description = ?, 
-            original_price = ?, discount_amount = ?, price = ?, 
-            image_url = ?, is_available = ?, updated_at = NOW() 
+            name = ?, description = ?, original_price = ?, discount_amount = ?, price = ?, 
+            image_url = ?, is_available = ? 
             WHERE id = ?
         `;
         await connection.query(comboSql, [
-            name, description,
-            original_price,
-            discount_amount,
-            final_price,
-            image_url,
-            is_available === true ? 1 : 0,
-            comboId
+            name, description, original_price, discount_amount, final_price, finalImageUrl, isAvail, comboId
         ]);
 
-        // 3. Xóa sản phẩm cũ
+        // 6. Cập nhật danh sách sản phẩm (Xóa cũ thêm mới)
         await connection.query('DELETE FROM combo_items WHERE combo_id = ?', [comboId]);
-
-        // 4. Thêm lại sản phẩm mới
-        const itemValues = items.map(item => [comboId, item.product_id, item.quantity]);
-        const itemSql = 'INSERT INTO combo_items (combo_id, product_id, quantity) VALUES ?';
-        await connection.query(itemSql, [itemValues]);
+        
+        if (parsedItems.length > 0) {
+            const itemValues = parsedItems.map(item => [comboId, item.product_id, item.quantity]);
+            const itemSql = 'INSERT INTO combo_items (combo_id, product_id, quantity) VALUES ?';
+            await connection.query(itemSql, [itemValues]);
+        }
 
         await connection.commit();
-        
-        res.status(200).json({
-            message: 'Cập nhật combo thành công',
-            data: { id: comboId, ...req.body }
-        });
+        res.status(200).json({ message: 'Cập nhật combo thành công' });
 
     } catch (error) {
         if (connection) await connection.rollback();
-        console.error(`Lỗi khi cập nhật combo ${comboId}:`, error);
-        res.status(500).json({ message: error.message || 'Lỗi server khi cập nhật combo' });
+        console.error(`Lỗi hệ thống (500):`, error);
+        res.status(500).json({ message: error.message || 'Lỗi server' });
     } finally {
         if (connection) connection.release();
     }
 };
-
 
 
 /**
@@ -202,7 +231,8 @@ const getAllCombos = async (req, res) => {
  */
 const getAllCombosAdmin = async (req, res) => {
      try {
-        const sql = "SELECT id, name, description, price, original_price, discount_amount, image_url, is_available FROM combos ORDER BY id DESC";
+        // Đã thêm: WHERE is_deleted = 0
+        const sql = "SELECT id, name, description, price, original_price, discount_amount, image_url, is_available FROM combos WHERE is_deleted = 0 ORDER BY id DESC";
         const [combos] = await db.query(sql);
         res.status(200).json({
             message: 'Lấy danh sách combo cho admin thành công',
@@ -213,7 +243,6 @@ const getAllCombosAdmin = async (req, res) => {
         res.status(500).json({ message: 'Lỗi server' });
     }
 };
-
 /**
  * @desc    Lấy chi tiết 1 combo
  * @route   GET /api/combos/:id
@@ -253,23 +282,26 @@ const getComboById = async (req, res) => {
 
 
 /**
- * @desc    Xóa combo (cho Admin)
+ * @desc    Xóa combo (Soft Delete - Ẩn khỏi hệ thống nhưng giữ lịch sử DB)
  * @route   DELETE /api/combos/:id
  * @access  Admin
  */
 const deleteCombo = async (req, res) => {
     const comboId = req.params.id;
     try {
-        const [result] = await db.query('DELETE FROM combos WHERE id = ?', [comboId]);
+        // Cập nhật is_deleted = 1 (đã xóa) và is_available = 0 (ngừng bán)
+        // Thêm điều kiện is_deleted = 0 để tránh việc update lại một combo đã bị xóa rồi
+        const sql = 'UPDATE combos SET is_deleted = 1, is_available = 0 WHERE id = ? AND is_deleted = 0';
+        const [result] = await db.query(sql, [comboId]);
 
         if (result.affectedRows === 0) {
-            return res.status(404).json({ message: 'Không tìm thấy combo để xóa' });
+            return res.status(404).json({ message: 'Không tìm thấy combo hoặc combo đã được xóa từ trước' });
         }
         
         res.status(200).json({ message: 'Xóa combo thành công' });
     } catch (error) {
         console.error(`Lỗi khi xóa combo ${comboId}:`, error);
-        res.status(500).json({ message: 'Lỗi server' });
+        res.status(500).json({ message: 'Lỗi server khi xóa combo' });
     }
 };
 

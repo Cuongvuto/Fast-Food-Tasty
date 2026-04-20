@@ -10,24 +10,25 @@ const {
     deleteCombo
 } = require('../controllers/comboController');
 
+// IMPORT MIDDLEWARE UPLOAD ẢNH (Giống bên productRoutes)
+const upload = require('../middlewares/uploadCloud'); // Sửa lại đường dẫn này nếu của bạn khác nhé
+
 // const { protect, admin } = require('../middleware/authMiddleware'); // Sẽ dùng sau
 
-// === ADMIN ROUTES (Các route cụ thể phải đặt trước) ===
-// GET /api/combos/admin
+// === ADMIN ROUTES ===
 router.route('/admin')
-    .get(getAllCombosAdmin); // <-- ĐÃ ĐƯỢC CHUYỂN LÊN TRÊN
+    .get(getAllCombosAdmin); 
 
 // === PUBLIC & ADMIN ROUTES ===
-
-// GET (Public) và POST (Admin) cho /api/combos
 router.route('/')
     .get(getAllCombos)
-    .post(createCombo); // (Tạm thời chưa bảo vệ)
+    // Thêm upload.single('image') vào đây để bắt file ảnh
+    .post(upload.single('image'), createCombo); 
 
-// GET (Public), PUT (Admin), DELETE (Admin) cho /api/combos/:id
 router.route('/:id')
     .get(getComboById)
-    .put(updateCombo)     // (Tạm thời chưa bảo vệ)
-    .delete(deleteCombo); // (Tạm thời chưa bảo vệ)
+    // Thêm upload.single('image') vào đây để bắt file ảnh
+    .put(upload.single('image'), updateCombo) 
+    .delete(deleteCombo); 
 
 module.exports = router;

@@ -1,25 +1,50 @@
 // src/pages/CartPage.jsx
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useCart } from '../context/CartContext';
 import {
-    Container, Typography, Grid, Card, CardMedia, CardContent, Box, Button, IconButton,
-    Stack, Paper, useTheme, Dialog, DialogActions, DialogContent, DialogTitle,
-    CircularProgress, Tooltip, Divider
+    Container, Typography, Box, Card, CardMedia, Button, IconButton,
+    Stack, Paper, Dialog, DialogActions, DialogContent, DialogTitle,
+    CircularProgress, Divider, TextField
 } from '@mui/material';
-import DeleteIcon from '@mui/icons-material/Delete';
+import AddIcon from '@mui/icons-material/Add';
+import RemoveIcon from '@mui/icons-material/Remove';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
-import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
+
+import apiClient from '../api/axiosConfig';
 import { useNavigate } from 'react-router-dom';
 import { getImageUrl } from '../utils/imageHelper';
 
 function CartPage() {
-    const theme = useTheme();
     const navigate = useNavigate();
-    const { cartItems, removeFromCart } = useCart();
+    const { cartItems, removeFromCart, updateQuantity, addToCart } = useCart();
     const [deleteDialog, setDeleteDialog] = useState({ open: false, item: null });
     const [checkoutLoading, setCheckoutLoading] = useState(false);
+    const [suggestedDrinks, setSuggestedDrinks] = useState([]);
+    
+    const sliderRef = useRef(null);
+
+    const orangeColor = '#f97316'; 
+    const orangeHover = '#ea580c';
+    const kfcRed = '#e3002b'; 
 
     const totalPrice = cartItems.reduce((total, item) => total + item.price * item.quantity, 0);
+    const totalItems = cartItems.reduce((total, item) => total + item.quantity, 0);
+
+    useEffect(() => {
+        const fetchDrinks = async () => {
+            try {
+                const response = await apiClient.get('/products/category/3', {
+                    params: { limit: 10 } 
+                });
+                if (response.data && response.data.data) {
+                    setSuggestedDrinks(response.data.data);
+                }
+            } catch (error) {
+                console.error('Lỗi khi tải đồ uống gợi ý:', error);
+            }
+        };
+        fetchDrinks();
+    }, []);
 
     const handleDeleteClick = (item) => {
         setDeleteDialog({ open: true, item });
@@ -30,7 +55,6 @@ function CartPage() {
         setDeleteDialog({ open: false, item: null });
     };
 
-    // Hàm này đã điều hướng đúng đến /checkout
     const handleCheckout = async () => {
         setCheckoutLoading(true);
         setTimeout(() => {
@@ -39,33 +63,20 @@ function CartPage() {
         }, 1000);
     };
 
+    const handleAddSuggested = (drink) => {
+        if(addToCart) {
+            addToCart({ ...drink, quantity: 1 });
+        }
+    };
+
     if (cartItems.length === 0) {
         return (
-            <Container sx={{
-                py: 8,
-                textAlign: 'center',
-                animation: 'fadeIn 0.8s ease-in-out',
-                '@keyframes fadeIn': {
-                    from: { opacity: 0, transform: 'translateY(20px)' },
-                    to: { opacity: 1, transform: 'translateY(0)' },
-                },
-            }}>
-                <ShoppingCartIcon sx={{ fontSize: 80, color: theme.palette.grey[400], mb: 2 }} />
-                <Typography variant="h5" sx={{ mb: 2, color: theme.palette.text.secondary }}>
+            <Container sx={{ py: 8, textAlign: 'center' }}>
+                <ShoppingCartIcon sx={{ fontSize: 80, color: '#ccc', mb: 2 }} />
+                <Typography variant="h5" sx={{ mb: 2, color: 'text.secondary', fontWeight: 'bold' }}>
                     Giỏ hàng của bạn đang trống.
                 </Typography>
-                <Typography variant="body1" sx={{ mb: 4, color: theme.palette.text.secondary }}>
-                    Hãy thêm sản phẩm yêu thích vào giỏ để bắt đầu mua sắm!
-                </Typography>
-                <Button
-                    variant="contained"
-                    size="large"
-                    onClick={() => navigate('/menu')}
-                    sx={{
-                        background: `linear-gradient(45deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
-                        '&:hover': { transform: 'scale(1.05)' },
-                    }}
-                >
+                <Button variant="contained" size="large" onClick={() => navigate('/menu')} sx={{ bgcolor: orangeColor, borderRadius: 8, px: 4, '&:hover': { bgcolor: orangeHover } }}>
                     Khám phá menu
                 </Button>
             </Container>
@@ -73,168 +84,192 @@ function CartPage() {
     }
 
     return (
-        <Container sx={{
-            py: { xs: 4, md: 6 },
-            animation: 'fadeIn 0.8s ease-in-out',
-            '@keyframes fadeIn': {
-                from: { opacity: 0, transform: 'translateY(20px)' },
-                to: { opacity: 1, transform: 'translateY(0)' },
-            },
-        }}>
-            <Typography
-                variant="h3"
-                component="h1"
-                gutterBottom
-                sx={{
-                    textAlign: 'center',
-                    mb: 4,
-                    fontWeight: 'bold',
-                    background: `linear-gradient(45deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
-                    WebkitBackgroundClip: 'text',
-                    WebkitTextFillColor: 'transparent',
-                }}
-            >
-                Giỏ hàng của bạn
-            </Typography>
+        <Box sx={{ bgcolor: '#f5f5f5', minHeight: '100vh', py: { xs: 4, md: 6 } }}>
+            <Container maxWidth="lg">
+                <Typography variant="h4" component="h1" gutterBottom sx={{ mb: 4, fontWeight: 800, textTransform: 'uppercase' }}>
+                    Giỏ hàng của tôi
+                </Typography>
 
-            <Grid container spacing={3}>
-                {/* Danh sách sản phẩm */}
-                <Grid item xs={12} md={8}>
-                    <Paper elevation={4} sx={{ borderRadius: 3, overflow: 'hidden' }}>
-                        <Grid container spacing={0}>
-                            {cartItems.map((item) => (
-                                <Grid item xs={12} key={item.id}>
-                                    <Card sx={{
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        p: 2,
-                                        borderRadius: 0,
-                                        boxShadow: 'none',
-                                        transition: 'all 0.3s ease-in-out',
-                                        '&:hover': {
-                                            bgcolor: theme.palette.grey[50],
-                                            transform: 'translateX(5px)',
-                                        },
-                                        '&:not(:last-child)': { borderBottom: `1px solid ${theme.palette.grey[200]}` },
-                                    }}>
-                                        {/* Ảnh sản phẩm */}
+                {/* 👇 VŨ KHÍ HẠNG NẶNG: Dùng CSS Grid thay cho Grid của MUI */}
+                <Box 
+                    sx={{ 
+                        display: 'grid', 
+                        // Cột trái chiếm 2 phần (bị khóa cứng bởi minmax(0)), Cột phải chiếm 1 phần
+                        gridTemplateColumns: { xs: '1fr', md: 'minmax(0, 2fr) minmax(0, 1fr)' }, 
+                        gap: 4,
+                        alignItems: 'start' // Giúp 2 cột không bị kéo dài bằng nhau
+                    }}
+                >
+                    {/* KHỐI TRÁI: DANH SÁCH SẢN PHẨM & GỢI Ý */}
+                    <Box sx={{ width: '100%' }}>
+                        
+                        {/* Danh sách sản phẩm trong giỏ */}
+                        <Paper elevation={0} sx={{ borderRadius: 2, overflow: 'hidden', mb: 4, border: '1px solid #e0e0e0', width: '100%' }}>
+                            {cartItems.map((item, index) => (
+                                <Box key={item.id}>
+                                    <Box sx={{ display: 'flex', p: 3, alignItems: 'center' }}>
                                         <CardMedia
                                             component="img"
-                                            image={getImageUrl(item.image_url) || '/placeholder.jpg'} 
+                                            image={getImageUrl(item.image_url) || 'https://via.placeholder.com/100'}
                                             alt={item.name}
-                                            sx={{
-                                                width: 80,
-                                                height: 80,
-                                                borderRadius: 2,
-                                                objectFit: 'cover',
-                                                mr: 2,
-                                            }}
+                                            sx={{ width: 100, height: 100, borderRadius: 2, objectFit: 'cover', mr: 3 }}
+                                        />
+                                        <Box sx={{ flexGrow: 1 }}>
+                                            <Typography variant="subtitle1" sx={{ fontWeight: 'bold', mb: 0.5 }}>{item.name}</Typography>
+                                            <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>{parseInt(item.price).toLocaleString('vi-VN')}đ</Typography>
+                                            <Button size="small" sx={{ p: 0, minWidth: 'auto', textTransform: 'none', fontWeight: 'bold', color: orangeColor }} onClick={() => handleDeleteClick(item)}>
+                                                Xóa
+                                            </Button>
+                                        </Box>
+                                        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 2 }}>
+                                            <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
+                                                {(item.price * item.quantity).toLocaleString('vi-VN')}đ
+                                            </Typography>
+                                            <Stack direction="row" alignItems="center" sx={{ border: '1px solid #ccc', borderRadius: 5 }}>
+                                                <IconButton size="small" onClick={() => updateQuantity && updateQuantity(item.id, item.quantity - 1)} disabled={item.quantity <= 1}>
+                                                    <RemoveIcon fontSize="small" />
+                                                </IconButton>
+                                                <Typography sx={{ px: 2, fontWeight: 'bold' }}>{item.quantity}</Typography>
+                                                <IconButton size="small" onClick={() => updateQuantity && updateQuantity(item.id, item.quantity + 1)}>
+                                                    <AddIcon fontSize="small" />
+                                                </IconButton>
+                                            </Stack>
+                                        </Box>
+                                    </Box>
+                                    {index < cartItems.length - 1 && <Divider />}
+                                </Box>
+                            ))}
+                        </Paper>
+
+                        {/* 👉 Block: Sẽ ngon hơn khi thưởng thức cùng */}
+                        <Paper elevation={0} sx={{ bgcolor: '#333333', color: 'white', p: 2, borderRadius: 2, width: '100%' }}>
+                            <Typography variant="subtitle1" sx={{ fontWeight: 'bold', textTransform: 'uppercase', mb: 1.5,fontSize: '0.9rem' }}>
+                                Sẽ ngon hơn khi thưởng thức cùng...
+                            </Typography>
+                            
+                            {/* Khu vực chứa thẻ đã bị khóa chặt, dư thẻ tự động biến thành cuộn */}
+                            <Box 
+                                ref={sliderRef}
+                                sx={{ 
+                                    display: 'flex',
+                                    gap: 1.5,
+                                    overflowX: 'auto',
+                                    width: '100%', 
+                                    pb: 1,
+                                    '&::-webkit-scrollbar': { height: '6px' },
+                                    '&::-webkit-scrollbar-track': { background: '#555', borderRadius: '4px' },
+                                    '&::-webkit-scrollbar-thumb': { background: '#888', borderRadius: '4px' },
+                                    '&::-webkit-scrollbar-thumb:hover': { background: '#aaa' },
+                                }}
+                            >
+                                {suggestedDrinks.map((drink) => (
+                                    <Card 
+                                        key={drink.id} 
+                                        sx={{ 
+                                            minWidth: 110, // Ép cứng chiều rộng thẻ
+                                            width: 110,
+                                            height: 150, 
+                                            flexShrink: 0, // Không cho phép bóp méo thẻ
+                                            borderRadius: 2, 
+                                            position: 'relative',
+                                            boxShadow: 'none',
+                                            bgcolor: 'white'
+                                        }}
+                                    >
+                                        <CardMedia
+                                            component="img"
+                                            image={getImageUrl(drink.image_url) || 'https://via.placeholder.com/140'}
+                                            alt={drink.name}
+                                            sx={{ height: '100%', width: '100%', objectFit: 'cover' }}
                                         />
 
-                                        {/* Thông tin sản phẩm */}
-                                        <CardContent sx={{ flexGrow: 1, p: 0 }}>
-                                            <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 1 }}>
-                                                {item.name}
+                                        <IconButton 
+                                            onClick={() => handleAddSuggested(drink)}
+                                            sx={{ 
+                                                position: 'absolute', top: 8, right: 8, 
+                                                bgcolor: kfcRed, color: 'white', 
+                                                width: 28, height: 28,
+                                                '&:hover': { bgcolor: '#b00020' },
+                                                boxShadow: 2
+                                            }}
+                                        >
+                                            <AddIcon sx={{ fontSize: 20 }} />
+                                        </IconButton>
+
+                                        <Box sx={{ 
+                                            position: 'absolute', bottom: 0, left: 0, right: 0,
+                                            background: 'linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.6) 60%, transparent 100%)',
+                                            p: 1.5, pt: 4
+                                        }}>
+                                            <Typography variant="body2" sx={{ 
+                                                color: 'white', fontWeight: 'bold', lineHeight: 1.2, mb: 0.5,
+                                                display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden'
+                                            }}>
+                                                {drink.name}
                                             </Typography>
-                                            <Stack direction="row" alignItems="center" spacing={0.5} sx={{ mb: 1 }}>
-                                                <AttachMoneyIcon sx={{ color: theme.palette.primary.main, fontSize: '1rem' }} />
-                                                <Typography variant="body2" color="text.secondary">
-                                                    Giá: {parseInt(item.price).toLocaleString('vi-VN')} VNĐ
-                                                </Typography>
-                                            </Stack>
-                                            <Stack direction="row" alignItems="center" spacing={0.5}>
-                                                <AttachMoneyIcon sx={{ color: theme.palette.primary.main, fontSize: '1rem' }} />
-                                                <Typography variant="body2" color="text.secondary">
-                                                    Tổng: {(item.price * item.quantity).toLocaleString('vi-VN')} VNĐ
-                                                </Typography>
-                                            </Stack>
-                                        </CardContent>
-
-                                        {/* Hiển thị số lượng */}
-                                        <Typography variant="body1" sx={{ mr: 2, minWidth: '50px', textAlign: 'center' }}>
-                                            SL: {item.quantity}
-                                        </Typography>
-
-                                        {/* Nút xóa */}
-                                        <Tooltip title="Xóa sản phẩm">
-                                            <IconButton
-                                                onClick={() => handleDeleteClick(item)}
-                                                color="error"
-                                                sx={{
-                                                    '&:hover': { transform: 'scale(1.1)', bgcolor: theme.palette.error.light },
-                                                }}
-                                                aria-label="Xóa"
-                                            >
-                                                <DeleteIcon />
-                                            </IconButton>
-                                        </Tooltip>
+                                            <Typography variant="body2" sx={{ color: '#ccc', fontWeight: 'bold' }}>
+                                                {parseInt(drink.price).toLocaleString('vi-VN')}đ
+                                            </Typography>
+                                        </Box>
                                     </Card>
-                                </Grid>
-                            ))}
-                        </Grid>
-                    </Paper>
-                </Grid>
+                                ))}
+                            </Box>
+                        </Paper>
+                    </Box>
 
-                {/* Tổng cộng và thanh toán */}
-                <Grid item xs={12} md={4}>
-                    <Card sx={{
-                        p: 3,
-                        borderRadius: 3,
-                        background: `linear-gradient(135deg, ${theme.palette.primary.light}10, ${theme.palette.secondary.light}10)`,
-                        boxShadow: '0 8px 32px rgba(0,0,0,0.1)',
-                    }}>
-                        <Typography variant="h5" sx={{ mb: 3, fontWeight: 'bold', textAlign: 'center' }}>
-                            Tóm tắt đơn hàng
-                        </Typography>
-                        <Divider sx={{ mb: 3 }} />
-                        <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2 }}>
-                            <Typography variant="h6">Tổng cộng:</Typography>
-                            <Stack direction="row" alignItems="center" spacing={0.5}>
-                                <Typography variant="h5" sx={{ fontWeight: 'bold', color: theme.palette.primary.main }}>
-                                    {totalPrice.toLocaleString('vi-VN')} VNĐ
-                                </Typography>
+                    {/* KHỐI PHẢI: TÓM TẮT ĐƠN HÀNG */}
+                    <Box sx={{ width: '100%', position: 'sticky', top: 20 }}>
+                        <Paper elevation={0} sx={{ p: 3, borderRadius: 2, border: '1px solid #e0e0e0' }}>
+                            <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 2 }}>
+                                {totalItems} MÓN
+                            </Typography>
+                            
+                            <Box sx={{ mb: 3 }}>
+                                <Typography variant="body2" sx={{ mb: 1, fontWeight: 'bold' }}>Bạn có Mã giảm giá?</Typography>
+                                <Stack direction="row" spacing={1}>
+                                    <TextField size="small" placeholder="Mã giảm giá *" variant="standard" fullWidth />
+                                    <Button variant="contained" sx={{ bgcolor: '#000', color: '#fff', '&:hover': { bgcolor: '#333' }, borderRadius: 8, px: 3 }}>
+                                        Áp dụng
+                                    </Button>
+                                </Stack>
+                            </Box>
+
+                            <Divider sx={{ mb: 2 }} />
+
+                            <Stack direction="row" justifyContent="space-between" sx={{ mb: 1 }}>
+                                <Typography variant="body1" color="text.secondary">Tổng đơn hàng</Typography>
+                                <Typography variant="body1">{totalPrice.toLocaleString('vi-VN')}đ</Typography>
                             </Stack>
-                        </Stack>
-                        {/* Nút này đã gọi đúng hàm handleCheckout */}
-                        <Button
-                            variant="contained"
-                            fullWidth
-                            size="large"
-                            onClick={handleCheckout} 
-                            disabled={checkoutLoading}
-                            sx={{
-                                background: `linear-gradient(45deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
-                                color: 'white',
-                                fontWeight: 'bold',
-                                borderRadius: 3,
-                                py: 1.5,
-                                transition: 'all 0.3s ease-in-out',
-                                boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
-                                '&:hover': {
-                                    transform: 'scale(1.05)',
-                                    boxShadow: '0 8px 24px rgba(0,0,0,0.3)',
-                                },
-                                '&:disabled': { opacity: 0.6 },
-                            }}
-                        >
-                            {checkoutLoading ? <CircularProgress size={24} color="inherit" /> : 'Tiến hành thanh toán'}
-                        </Button>
-                    </Card>
-                </Grid>
-            </Grid>
+                            <Stack direction="row" justifyContent="space-between" sx={{ mb: 3 }}>
+                                <Typography variant="h6" sx={{ fontWeight: 'bold' }}>Tổng thanh toán</Typography>
+                                <Typography variant="h6" sx={{ fontWeight: 'bold', color: kfcRed }}>{totalPrice.toLocaleString('vi-VN')}đ</Typography>
+                            </Stack>
 
-            {/* Dialog xác nhận xóa */}
-            <Dialog open={deleteDialog.open} onClose={() => setDeleteDialog({ open: false, item: null })}>
-                <DialogTitle>Xác nhận xóa</DialogTitle>
-                <DialogContent>
-                    Bạn có chắc muốn xóa "{deleteDialog.item?.name}" khỏi giỏ hàng?
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={() => setDeleteDialog({ open: false, item: null })}>Hủy</Button>
-                    <Button onClick={confirmDelete} color="error">Xóa</Button>
-                </DialogActions>
-            </Dialog>
-        </Container>
+                            <Button
+                                variant="contained"
+                                fullWidth
+                                size="large"
+                                onClick={handleCheckout} 
+                                disabled={checkoutLoading}
+                                sx={{ bgcolor: kfcRed, color: 'white', fontWeight: 'bold', borderRadius: 8, py: 1.5, textTransform: 'none', fontSize: '1.1rem', '&:hover': { bgcolor: '#b00020' }, '&:disabled': { opacity: 0.7 } }}
+                            >
+                                {checkoutLoading ? <CircularProgress size={24} color="inherit" /> : `Thanh toán ${totalPrice.toLocaleString('vi-VN')}đ`}
+                            </Button>
+                        </Paper>
+                    </Box>
+                </Box>
+
+                {/* Dialog xác nhận xóa */}
+                <Dialog open={deleteDialog.open} onClose={() => setDeleteDialog({ open: false, item: null })}>
+                    <DialogTitle sx={{ fontWeight: 'bold' }}>Xác nhận xóa</DialogTitle>
+                    <DialogContent>Bạn có chắc muốn xóa "{deleteDialog.item?.name}" khỏi giỏ hàng?</DialogContent>
+                    <DialogActions>
+                        <Button onClick={() => setDeleteDialog({ open: false, item: null })} sx={{ color: 'text.secondary' }}>Hủy</Button>
+                        <Button onClick={confirmDelete} sx={{ color: orangeColor, fontWeight: 'bold' }}>Xóa</Button>
+                    </DialogActions>
+                </Dialog>
+            </Container>
+        </Box>
     );
 }
 

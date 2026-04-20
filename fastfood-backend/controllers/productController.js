@@ -207,10 +207,42 @@ const deleteProduct = async (req, res) => {
   }
 };
 
+// === LẤY SẢN PHẨM THEO CATEGORY_ID (VD: Lấy Drinks có ID = 3) ===
+const getProductsByCategoryId = async (req, res) => {
+  try {
+    const categoryId = req.params.categoryId;
+    // Cho phép giới hạn số lượng lấy ra (mặc định lấy 10 món để đưa vào gợi ý)
+    const limit = parseInt(req.query.limit) || 10; 
+
+    const sql = `
+      SELECT 
+        p.id, p.name, p.description, p.price, p.image_url, 
+        p.category_id, p.is_available, p.is_hot,
+        c.name as category_name, c.slug as category_slug
+      FROM products p
+      LEFT JOIN categories c ON p.category_id = c.id
+      WHERE p.category_id = ? AND p.is_available = TRUE
+      ORDER BY p.id DESC
+      LIMIT ?
+    `;
+
+    const [products] = await db.query(sql, [categoryId, limit]);
+
+    res.status(200).json({
+      message: 'Lấy danh sách sản phẩm theo danh mục thành công',
+      data: products
+    });
+  } catch (error) {
+    console.error(`Lỗi khi lấy sản phẩm theo category ID ${req.params.categoryId}:`, error);
+    res.status(500).json({ message: 'Lỗi server' });
+  }
+};
+
 module.exports = {
   getAllProducts,
   getProductById,
   createProduct,
   updateProduct,
-  deleteProduct
+  deleteProduct,
+  getProductsByCategoryId
 };
