@@ -59,79 +59,75 @@ function SuggestionsSection() {
 
     if (loading) return <Box sx={{ display: 'flex', justifyContent: 'center', my: 10 }}><CircularProgress color="error" /></Box>;
 
-    return (
-        <Container maxWidth="lg" sx={{ my: 8 }}>
-            {/* 1. HEADER */}
-            <Box sx={{ textAlign: 'center', mb: 6 }}>
-                <Typography 
-                    variant="h4" 
-                    component="h2" 
-                    sx={{ 
-                        fontWeight: 800,
-                        color: '#000',
-                        mb: 1,
-                        fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif'
-                    }}
-                >
-                    Gợi ý của chúng tôi
-                </Typography>
-                <Typography variant="body1" sx={{ color: '#666', fontSize: '1rem' }} />
-            </Box>
-            
-            {/* 2. SLIDER LAYOUT: Đổi từ Grid sang Box trượt ngang */}
-            <Box 
+   return (
+    <Container maxWidth="lg" sx={{ py: 6 }}> {/* Chỉnh my: 8 thành py: 6 để giống phần Combo */}
+        {/* 1. HEADER */}
+        <Box sx={{ textAlign: 'center', mb: 4 }}> {/* Chỉnh mb: 6 thành mb: 4 */}
+            <Typography 
+                variant="h4" 
+                component="h2" 
                 sx={{ 
-                    display: 'flex',
-                    overflowX: 'auto', // Bật cuộn ngang
-                    gap: 3, // Khoảng cách giữa các thẻ sản phẩm
-                    pb: 3, // Đệm dưới để không bị cắt bóng đổ của thẻ (box-shadow)
-                    pt: 1, // Đệm trên một chút
-                    px: 1, // Đệm hai bên để thẻ đầu/cuối không sát viền màn hình
-                    
-                    // Cấu hình trượt mượt mà
-                    scrollBehavior: 'smooth',
-                    scrollSnapType: 'x mandatory', // Giúp thẻ tự động "khớp" vào vị trí khi vuốt
-                    
-                    // Ẩn thanh cuộn mặc định cho đẹp
-                    '&::-webkit-scrollbar': { display: 'none' },
-                    msOverflowStyle: 'none',
-                    scrollbarWidth: 'none',
+                    fontWeight: 'bold', // Dùng 'bold' thay vì 800 để giống phần Combo
+                    color: 'text.primary', // Dùng màu mặc định của hệ thống
+                    mb: 1
                 }}
             >
-                {products.map((product, index) => (
-                    <Box 
-                        key={product.id}
-                        sx={{
-                            // Cố định chiều rộng của thẻ. Đổi số này nếu muốn thẻ to/nhỏ hơn
-                            minWidth: { xs: '260px', sm: '280px', md: '300px' }, 
-                            flexShrink: 0, // NGĂN CHẶN thẻ bị bóp méo khi màn hình nhỏ
-                            scrollSnapAlign: 'start', // Điểm neo khi vuốt trượt
-                        }}
-                    >
-                        <SuggestionCardWrapper product={product} index={index} />
-                    </Box>
-                ))}
-            </Box>
-
-            {/* 3. FOOTER */}
-            <Box sx={{ textAlign: 'center', mt: 4 }}>
-                <Typography 
-                    component="a" 
-                    href="/menu" 
-                    sx={{ 
-                        color: '#FF6B00',
-                        fontWeight: 'bold',
-                        textDecoration: 'none',
-                        cursor: 'pointer',
-                        fontSize: '1rem',
-                        '&:hover': { color: '#e65100' }
+                Gợi ý của chúng tôi
+            </Typography>
+            <Typography variant="body1" color="text.secondary">
+                Sẽ ngon hơn khi thưởng thức cùng...
+            </Typography>
+        </Box>
+        
+        {/* 2. SLIDER LAYOUT */}
+        <Box 
+            sx={{ 
+                display: 'flex',
+                overflowX: 'auto',
+                gap: 4, // Tăng gap lên 4 để khớp với spacing={4} của Grid Combo
+                pb: 3, 
+                pt: 1, 
+                px: 1, 
+                scrollBehavior: 'smooth',
+                scrollSnapType: 'x mandatory',
+                '&::-webkit-scrollbar': { display: 'none' },
+                msOverflowStyle: 'none',
+                scrollbarWidth: 'none',
+            }}
+        >
+            {products.map((product, index) => (
+                <Box 
+                    key={product.id}
+                    sx={{
+                        minWidth: { xs: '260px', sm: '280px', md: '300px' }, 
+                        flexShrink: 0,
+                        scrollSnapAlign: 'start',
                     }}
                 >
-                    See all
-                </Typography>
-            </Box>
-        </Container>
-    );
+                    <SuggestionCardWrapper product={product} index={index} />
+                </Box>
+            ))}
+        </Box>
+
+        {/* 3. FOOTER */}
+        <Box sx={{ textAlign: 'center', mt: 4 }}>
+            <Typography 
+                component="a" 
+                href="/menu" 
+                sx={{ 
+                    color: 'primary.main', // Sử dụng màu chính của Theme thay vì mã màu cứng
+                    fontWeight: 'bold',
+                    textDecoration: 'none',
+                    cursor: 'pointer',
+                    fontSize: '1rem',
+                    '&:hover': { textDecoration: 'underline' } // Thêm gạch chân khi hover cho giống link chuẩn
+                }}
+            >
+                See all
+            </Typography>
+        </Box>
+    </Container>
+);
 }
 
 export default SuggestionsSection;
